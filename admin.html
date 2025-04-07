@@ -6,43 +6,50 @@
     <title>פאנל ניהול</title>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* סגנונות CSS בסיסיים - תוכל להרחיב ולשנות */
         body {
             font-family: 'Heebo', Arial, sans-serif;
             margin: 20px;
             direction: rtl;
             background-color: #f4f4f4;
             color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .admin-section {
+        .admin-container {
             background-color: #fff;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 900px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
         }
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+            text-align: right;
         }
         input[type="text"],
         input[type="number"],
-        textarea {
+        textarea,
+        input[type="email"],
+        input[type="password"] {
             width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
         }
         button {
-            padding: 10px 15px;
-            background-color: #5cb85c;
+            padding: 12px 15px;
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
@@ -51,124 +58,178 @@
             transition: background-color 0.3s ease;
         }
         button:hover {
-            background-color: #4cae4c;
+            background-color: #0056b3;
         }
-        .order-list {
-            list-style: none;
-            padding: 0;
+        .error-message {
+            color: red;
+            margin-top: 10px;
         }
-        .order-item {
+        .admin-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
             border: 1px solid #eee;
+            text-align: right;
+        }
+        #admin-login-section {
+            display: none; /* הסתר כברירת מחדל */
+        }
+        #admin-content {
+            display: none; /* הסתר את תוכן האדמין עד שהמשתמש מחובר */
+        }
+        #product-options-container {
+            margin-top: 15px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        #options-list .option {
+            border: 1px solid #ddd;
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 4px;
-            cursor: pointer;
             background-color: #f9f9f9;
-        }
-        .order-details {
-            border: 1px solid #ccc;
-            padding: 15px;
-            margin-top: 10px;
-            border-radius: 4px;
-            background-color: #fff;
-        }
-        .edit-form {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: auto auto auto 1fr auto;
+            gap: 10px;
+            align-items: center;
         }
-        .edit-form button {
-            grid-column: 1 / -1;
-            background-color: #007bff;
+        #options-list .option label {
+            margin-bottom: 0;
         }
-        .edit-form button:hover {
-            background-color: #0056b3;
+        #options-list .option input[type="text"] {
+            margin-bottom: 0;
+        }
+        #options-list .option .remove-option-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+        #options-list .option .remove-option-button:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
 <body>
-    <h2>פאנל ניהול</h2>
-
-    <div class="admin-section">
-        <h3>הוספת מוצר חדש</h3>
-        <form id="add-product-form">
-            <label for="new-product-name">שם המוצר:</label>
-            <input type="text" id="new-product-name" required>
-
-            <label for="new-product-price">מחיר:</label>
-            <input type="number" id="new-product-price" min="0" step="0.01" required>
-
-            <label for="new-product-description">תיאור:</label>
-            <textarea id="new-product-description"></textarea>
-
-            <label for="new-product-image-url">קישור לתמונה:</label>
-            <input type="text" id="new-product-image-url">
-
-            <button type="submit">הוסף מוצר</button>
-            <p id="add-product-message" class="success-message"></p>
-            <p id="add-product-error" class="error-message"></p>
-        </form>
-    </div>
-
-    <div class="admin-section">
-        <h3>ניהול הזמנות</h3>
-        <ul id="orders-list" class="order-list">
-            <li>טוען הזמנות...</li>
-        </ul>
-        <div id="order-details-container" style="display: none;">
-            <h4>פרטי הזמנה</h4>
-            <div id="order-details"></div>
-            <div id="order-management-buttons">
+    <div class="admin-container">
+        <section id="admin-login-section">
+            <h2>התחברות מנהל</h2>
+            <form id="admin-login-form">
+                <div>
+                    <label for="email">כתובת אימייל:</label>
+                    <input type="email" id="email" name="email" required>
                 </div>
-        </div>
-    </div>
-
-    <div class="admin-section">
-        <h3>שינוי פרטי מוצרים</h3>
-        <ul id="product-list-edit">
-            <li>טוען מוצרים לעריכה...</li>
-        </ul>
-        <div id="edit-product-container" style="display: none;">
-            <h4>עריכת מוצר</h4>
-            <form id="edit-product-form" class="edit-form">
-                <input type="hidden" id="edit-product-id">
-                <label for="edit-product-name">שם:</label>
-                <input type="text" id="edit-product-name">
-                <label for="edit-product-price">מחיר:</label>
-                <input type="number" id="edit-product-price" min="0" step="0.01">
-                <label for="edit-product-description">תיאור:</label>
-                <textarea id="edit-product-description"></textarea>
-                <label for="edit-product-image-url">קישור תמונה:</label>
-                <input type="text" id="edit-product-image-url">
-                <button type="submit">שמור שינויים</button>
-                <p id="edit-product-message" class="success-message"></p>
-                <p id="edit-product-error" class="error-message"></p>
+                <div>
+                    <label for="password">סיסמה:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <p id="login-error" class="error-message"></p>
+                <button type="submit">התחבר</button>
             </form>
-        </div>
-    </div>
+        </section>
 
-    <div class="admin-section">
-        <h3>שליטה על טקסטים</h3>
-        <form id="text-control-form">
-            <div>
-                <label for="about-text">טקסט אודות:</label>
-                <textarea id="about-text"></textarea>
+        <div id="admin-content">
+            <h2>פאנל ניהול</h2>
+
+            <div class="admin-section">
+                <h3>הוספת מוצר חדש</h3>
+                <form id="add-product-form">
+                    <label for="new-product-name">שם המוצר:</label>
+                    <input type="text" id="new-product-name" required>
+
+                    <label for="new-product-price">מחיר בסיס:</label>
+                    <input type="number" id="new-product-price" min="0" step="0.01" required>
+
+                    <label for="new-product-description">תיאור:</label>
+                    <textarea id="new-product-description"></textarea>
+
+                    <label for="new-product-image-url">קישור לתמונה:</label>
+                    <input type="text" id="new-product-image-url">
+
+                    <div id="product-options-container">
+                        <label>אופציות מוצר:</label>
+                        <div id="options-list">
+                            </div>
+                        <button type="button" id="add-option-button">הוסף אופציה</button>
+                    </div>
+
+                    <button type="submit">הוסף מוצר</button>
+                    <p id="add-product-message" class="success-message"></p>
+                    <p id="add-product-error" class="error-message"></p>
+                </form>
             </div>
-            <div>
-                <label for="contact-text">טקסט צור קשר:</label>
-                <textarea id="contact-text"></textarea>
+
+            <div class="admin-section">
+                <h3>ניהול הזמנות</h3>
+                <ul id="orders-list" class="order-list">
+                    <li>טוען הזמנות...</li>
+                </ul>
+                <div id="order-details-container" style="display: none;">
+                    <h4>פרטי הזמנה</h4>
+                    <div id="order-details"></div>
+                    <div id="order-management-buttons">
+                        </div>
+                </div>
             </div>
-            <button type="submit">שמור טקסטים</button>
-            <p id="text-control-message" class="success-message"></p>
-            <p id="text-control-error" class="error-message"></p>
-        </form>
+
+            <div class="admin-section">
+                <h3>שינוי פרטי מוצרים</h3>
+                <ul id="product-list-edit">
+                    <li>טוען מוצרים לעריכה...</li>
+                </ul>
+                <div id="edit-product-container" style="display: none;">
+                    <h4>עריכת מוצר</h4>
+                    <form id="edit-product-form" class="edit-form">
+                        <input type="hidden" id="edit-product-id">
+                        <label for="edit-product-name">שם:</label>
+                        <input type="text" id="edit-product-name">
+                        <label for="edit-product-price">מחיר:</label>
+                        <input type="number" id="edit-product-price" min="0" step="0.01">
+                        <label for="edit-product-description">תיאור:</label>
+                        <textarea id="edit-product-description"></textarea>
+                        <label for="edit-product-image-url">קישור תמונה:</label>
+                        <input type="text" id="edit-product-image-url">
+                        <div id="edit-product-options-container">
+                            <label>אופציות מוצר:</label>
+                            <div id="edit-options-list">
+                                </div>
+                            <button type="button" id="add-edit-option-button">הוסף אופציה</button>
+                        </div>
+                        <button type="submit">שמור שינויים</button>
+                        <p id="edit-product-message" class="success-message"></p>
+                        <p id="edit-product-error" class="error-message"></p>
+                    </form>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h3>שליטה על טקסטים</h3>
+                <form id="text-control-form">
+                    <div>
+                        <label for="about-text">טקסט אודות:</label>
+                        <textarea id="about-text"></textarea>
+                    </div>
+                    <div>
+                        <label for="contact-text">טקסט צור קשר:</label>
+                        <textarea id="contact-text"></textarea>
+                    </div>
+                    <button type="submit">שמור טקסטים</button>
+                    <p id="text-control-message" class="success-message"></p>
+                    <p id="text-control-error" class="error-message"></p>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script type="module">
-        // כאן יגיע קוד ה-JavaScript שלנו
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // **הגדרות Firebase כאן** - ודא שהן נכונות!
         const firebaseConfig = {
@@ -185,9 +246,20 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        const adminLoginSection = document.getElementById('admin-login-section');
+        const adminContent = document.getElementById('admin-content');
+        const adminLoginForm = document.getElementById('admin-login-form');
+        const loginError = document.getElementById('login-error');
+        const adminEmailSuffix = "@titus-admin.co.il";
+        const adminPassword = "Titus@2012";
+        let isAdminLoggedIn = false; // משתנה למעקב סטטוס מנהל
+
         const addProductForm = document.getElementById('add-product-form');
         const addProductMessage = document.getElementById('add-product-message');
         const addProductError = document.getElementById('add-product-error');
+        const addOptionButton = document.getElementById('add-option-button');
+        const optionsListContainer = document.getElementById('options-list');
+        const optionTemplate = document.getElementById('option-template');
 
         const ordersList = document.getElementById('orders-list');
         const orderDetailsContainer = document.getElementById('order-details-container');
@@ -204,6 +276,9 @@
         const editProductImageUrlInput = document.getElementById('edit-product-image-url');
         const editProductMessage = document.getElementById('edit-product-message');
         const editProductError = document.getElementById('edit-product-error');
+        const editOptionsListContainer = document.getElementById('edit-options-list');
+        const addEditOptionButton = document.getElementById('add-edit-option-button');
+        const editOptionTemplate = document.getElementById('option-template'); // שימוש באותה תבנית
 
         const textControlForm = document.getElementById('text-control-form');
         const aboutTextarea = document.getElementById('about-text');
@@ -211,38 +286,63 @@
         const textControlMessage = document.getElementById('text-control-message');
         const textControlError = document.getElementById('text-control-error');
 
-        async function checkAdmin() {
-            const user = auth.currentUser;
-            if (user) {
-                // כאן תהיה הלוגיקה לבדוק אם המשתמש הוא מנהל
-                // לדוגמה, בדיקה של כתובת האימייל או שדה מותאם אישית
-                const adminEmails = ["youradmin@email.com", "anotheradmin@email.com"];
-                if (!adminEmails.includes(user.email)) {
-                    window.location.href = '/'; // הפניה לדף הבית אם לא מנהל
-                }
-            } else {
-                window.location.href = '/login.html'; // הפניה להתחברות אם אין משתמש מחובר
+        function checkAdminStatus() {
+            const storedAdminStatus = localStorage.getItem('isAdminLoggedIn');
+            isAdminLoggedIn = storedAdminStatus === 'true';
+            adminLoginSection.style.display = isAdminLoggedIn ? 'none' : 'block';
+            adminContent.style.display = isAdminLoggedIn ? 'block' : 'none';
+            if (isAdminLoggedIn) {
+                loadOrders();
+                loadProductsForEdit();
+                loadTextControls();
             }
         }
 
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                checkAdmin();
-                loadOrders();
-                loadProductsForEdit();
-                loadTextControls();
+            checkAdminStatus(); // בדוק סטטוס מנהל בעת טעינת הדף ובשינוי סטטוס התחברות
+        });
+
+        adminLoginForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = adminLoginForm.email.value;
+            const password = adminLoginForm.password.value;
+
+            if (email.endsWith(adminEmailSuffix) && password === adminPassword) {
+                localStorage.setItem('isAdminLoggedIn', 'true');
+                checkAdminStatus(); // עדכן את התצוגה לאחר התחברות מוצלחת
             } else {
-                window.location.href = '/login.html';
+                loginError.textContent = 'שגיאה בהתחברות. אנא בדוק את האימייל והסיסמה.';
             }
         });
 
         // 1. הוספת מוצר חדש
+        addOptionButton?.addEventListener('click', () => {
+            const newOption = optionTemplate.content.cloneNode(true);
+            optionsListContainer.appendChild(newOption);
+            const removeButton = newOption.querySelector('.remove-option-button');
+            removeButton.addEventListener('click', (event) => {
+                event.target.parentNode.remove();
+            });
+        });
+
         addProductForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = addProductForm['new-product-name'].value;
             const price = parseFloat(addProductForm['new-product-price'].value);
             const description = addProductForm['new-product-description'].value;
             const imageUrl = addProductForm['new-product-image-url'].value;
+            const options = [];
+            const optionDivs = optionsListContainer.querySelectorAll('.option');
+            optionDivs.forEach(optionDiv => {
+                const optionNameInput = optionDiv.querySelector('.option-name');
+                const optionValuesInput = optionDiv.querySelector('.option-values');
+                if (optionNameInput.value) {
+                    options.push({
+                        name: optionNameInput.value,
+                        values: optionValuesInput.value.split(',').map(v => v.trim()).filter(v => v)
+                    });
+                }
+            });
 
             if (name && !isNaN(price)) {
                 try {
@@ -250,9 +350,11 @@
                         name: name,
                         price: price,
                         description: description,
-                        imageUrl: imageUrl
+                        imageUrl: imageUrl,
+                        options: options
                     });
                     addProductForm.reset();
+                    optionsListContainer.innerHTML = '';
                     addProductMessage.textContent = 'המוצר נוסף בהצלחה!';
                     addProductError.textContent = '';
                 } catch (error) {
@@ -260,16 +362,15 @@
                     addProductError.textContent = 'אירעה שגיאה בהוספת המוצר.';
                     addProductMessage.textContent = '';
                 }
-            } else {
-                addProductError.textContent = 'אנא מלאו את שם המוצר ומחיר תקין.';
+            } else {addProductError.textContent = 'אנא מלאו את שם המוצר ומחיר תקין.';
                 addProductMessage.textContent = '';
             }
         });
 
-        // 2. הצגת הזמנות (דורש מבנה נתונים ספציפי של ההזמנות ב-Firestore)
+        // 2. הצגת הזמנות
         async function loadOrders() {
+            if (!isAdminLoggedIn) return; // אל תטען אם לא מחובר כמנהל
             ordersList.innerHTML = 'טוען הזמנות...';
-            // **הנחה:** יש לך אוסף בשם 'orders' עם פרטי ההזמנה
             const ordersRef = collection(db, 'orders');
             onSnapshot(ordersRef, (snapshot) => {
                 ordersList.innerHTML = '';
@@ -292,22 +393,40 @@
         }
 
         function showOrderDetails(orderId, order) {
+            let itemsHtml = '<ul>';
+            order.items?.forEach(item => {
+                let optionsText = '';
+                if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
+                    optionsText = ' (';
+                    const optionsArray = [];
+                    for (const key in item.selectedOptions) {
+                        optionsArray.push(`${key}: ${item.selectedOptions[key]}`);
+                    }
+                    optionsText += optionsArray.join(', ') + ')';
+                }
+                itemsHtml += `<li>${item.productName} x ${item.quantity}${optionsText} - ₪${item.price * item.quantity}</li>`;
+            });
+            itemsHtml += '</ul>';
+
             orderDetailsDiv.innerHTML = `
                 <p><b>מספר הזמנה:</b> ${orderId}</p>
                 <p><b>שם לקוח:</b> ${order.customerName || 'לא זמין'}</p>
                 <p><b>אימייל:</b> ${order.customerEmail || 'לא זמין'}</p>
                 <p><b>כתובת משלוח:</b> ${order.shippingAddress || 'לא זמין'}</p>
                 <p><b>סך הכל:</b> ${order.totalAmount || 'לא זמין'} ₪</p>
-                `;
+                <p><b>פריטים:</b></p>
+                ${itemsHtml}
+            `;
             orderManagementButtonsDiv.innerHTML = `
                 <button>סמן כטופל</button>
                 <button>צור קשר עם לקוח</button>
-                `;
+            `;
             orderDetailsContainer.style.display = 'block';
         }
 
-        // 3. שינוי פרטי המוצרים
+        // 3. שינוי פרטי מוצרים
         async function loadProductsForEdit() {
+            if (!isAdminLoggedIn) return; // אל תטען אם לא מחובר כמנהל
             productListEdit.innerHTML = 'טוען מוצרים לעריכה...';
             const productsRef = collection(db, 'products');
             onSnapshot(productsRef, (snapshot) => {
@@ -329,14 +448,38 @@
             });
         }
 
-        function populateEditForm(productId, product) {
+        async function populateEditForm(productId, product) {
+            editProductContainer.style.display = 'block';
             editProductIdInput.value = productId;
             editProductNameInput.value = product.name || '';
             editProductPriceInput.value = product.price || '';
-            editProducteditProductDescriptionInput.value = product.description || '';
+            editProductDescriptionInput.value = product.description || '';
             editProductImageUrlInput.value = product.imageUrl || '';
-            editProductContainer.style.display = 'block';
+
+            // טען את האופציות הקיימות של המוצר לטופס העריכה
+            editOptionsListContainer.innerHTML = '';
+            product.options?.forEach(option => {
+                const newOption = editOptionTemplate.content.cloneNode(true);
+                const optionNameInput = newOption.querySelector('.option-name');
+                const optionValuesInput = newOption.querySelector('.option-values');
+                optionNameInput.value = option.name || '';
+                optionValuesInput.value = option.values ? option.values.join(',') : '';
+                editOptionsListContainer.appendChild(newOption);
+                const removeButton = newOption.querySelector('.remove-option-button');
+                removeButton.addEventListener('click', (event) => {
+                    event.target.parentNode.remove();
+                });
+            });
         }
+
+        addEditOptionButton?.addEventListener('click', () => {
+            const newOption = editOptionTemplate.content.cloneNode(true);
+            editOptionsListContainer.appendChild(newOption);
+            const removeButton = newOption.querySelector('.remove-option-button');
+            removeButton.addEventListener('click', (event) => {
+                event.target.parentNode.remove();
+            });
+        });
 
         editProductForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -345,6 +488,18 @@
             const price = parseFloat(editProductPriceInput.value);
             const description = editProductDescriptionInput.value;
             const imageUrl = editProductImageUrlInput.value;
+            const options = [];
+            const optionDivs = editOptionsListContainer.querySelectorAll('.option');
+            optionDivs.forEach(optionDiv => {
+                const optionNameInput = optionDiv.querySelector('.option-name');
+                const optionValuesInput = optionDiv.querySelector('.option-values');
+                if (optionNameInput.value) {
+                    options.push({
+                        name: optionNameInput.value,
+                        values: optionValuesInput.value.split(',').map(v => v.trim()).filter(v => v)
+                    });
+                }
+            });
 
             if (productId && name && !isNaN(price)) {
                 try {
@@ -353,7 +508,8 @@
                         name: name,
                         price: price,
                         description: description,
-                        imageUrl: imageUrl
+                        imageUrl: imageUrl,
+                        options: options
                     });
                     editProductMessage.textContent = 'המוצר עודכן בהצלחה!';
                     editProductError.textContent = '';
@@ -371,8 +527,9 @@
             }
         });
 
-        // 4. שליטה על הטקסטים של צור קשר ואודות
+        // 4. שליטה על הטקסטים
         async function loadTextControls() {
+            if (!isAdminLoggedIn) return; // אל תטען אם לא מחובר כמנהל
             const textControlDocRef = doc(db, 'siteText', 'aboutContact');
             const docSnap = await getDoc(textControlDocRef);
             if (docSnap.exists()) {
@@ -403,6 +560,9 @@
                 textControlMessage.textContent = '';
             }
         });
+
+        // אתחול: בדוק סטטוס מנהל בעת טעינת הדף
+        checkAdminStatus();
     </script>
 </body>
 </html>
