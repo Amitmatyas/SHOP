@@ -73,22 +73,29 @@
             });
         }
 
-        registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const email = registerForm.email.value;
-            const password = registerForm.password.value;
+auth.createUserWithEmailAndPassword(email, password)
+  .then((userCredential) => {
+    // משתמש נוצר בהצלחה
+    console.log("משתמש נרשם בהצלחה!", userCredential.user);
 
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                await createUserDocument(user);
-                sessionStorage.setItem('firstSignIn', 'true');
-                window.location.href = '/register-details.html';
-            } catch (error) {
-                console.error('שגיאה בהרשמה:', error);
-                registerError.textContent = 'שגיאה בהרשמה: ' + error.message;
-            }
-        });
+    // לאחר יצירת המשתמש, שמור את הנתונים הנוספים שלו ב-Firestore
+    return db.collection('users').doc(userCredential.user.uid).set({
+      email: email,
+      // הוסף כאן שדות נוספים שאתה רוצה לשמור
+      // לדוגמה: firstName: '', lastName: '', phone: ''
+    });
+  })
+  .then(() => {
+    // לאחר שמירת הנתונים (או אם אין נתונים נוספים לשמור)
+    // בצע הפניה לדף מילוי הפרטים
+    window.location.href = 'profile-details.html'; // שנה את הנתיב לדף שלך
+  })
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.error("שגיאה ברישום:", errorCode, errorMessage);
+    // הצג למשתמש הודעת שגיאה
+  });
     </script>
 </body>
 </html>
