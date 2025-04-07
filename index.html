@@ -34,6 +34,7 @@ nav ul {
     margin: 0;
     display: flex;
     align-items: center; /* ליישור אנכי של פריטי התפריט */
+    justify-content: center; /* למרכז את התפריט */
 }
 
 nav ul li {
@@ -45,7 +46,8 @@ nav ul li:first-child {
 }
 
 nav ul li a,
-#view-cart-btn {
+#view-cart-btn,
+#account-link { /* הוספתי את #account-link לסלקטור */
     text-decoration: none;
     color: #333;
     font-weight: bold;
@@ -53,12 +55,13 @@ nav ul li a,
     cursor: pointer;
     padding: 10px 15px;
     border-radius: 5px;
-    display: flex; /* כדי ליישר פנימית (למשל, אייקון וטקסט) */
+    display: flex; /* כדי ליישר פנימית (למשל, אייקון וטקסט - אם תוסיף) */
     align-items: center;
 }
 
 nav ul li a:hover,
-#view-cart-btn:hover {
+#view-cart-btn:hover,
+#account-link:hover { /* הוספתי :hover עבור #account-link */
     color: #007bff;
     background-color: #f0f8ff;
 }
