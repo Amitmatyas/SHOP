@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>דף שליטה - החנות שלי (מנהל)</title>
+    <title>החנות שלי - דף ניהול</title>
     <style>
-        /* סגנון בסיסי לדף השליטה - תוכל להוסיף CSS מפורט יותר */
         body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
         header nav ul { list-style: none; padding: 0; }
         header nav ul li { display: inline; margin-right: 10px; }
@@ -14,14 +13,13 @@
         label { display: block; margin-bottom: 5px; }
         input[type="text"], input[type="number"], textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
         button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-        .order-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-        .edit-product-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .order-item, .edit-product-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
         .edit-product-item button { margin-left: 10px; }
     </style>
 </head>
 <body>
     <header>
-        <h1>דף שליטה</h1>
+        <h1>ניהול החנות</h1>
         <nav>
             <ul>
                 <li><a href="index.html">חזרה לחנות</a></li>
@@ -35,11 +33,11 @@
             <h2>הוספת מוצר חדש</h2>
             <form id="add-product-form">
                 <div class="product-form-group">
-                    <label for="add-product-name">שם המוצר:</label>
+                    <label for="add-product-name">שם מוצר:</label>
                     <input type="text" id="add-product-name" required>
                 </div>
                 <div class="product-form-group">
-                    <label for="add-product-description">תיאור המוצר:</label>
+                    <label for="add-product-description">תיאור מוצר:</label>
                     <textarea id="add-product-description"></textarea>
                 </div>
                 <div class="product-form-group">
@@ -47,24 +45,26 @@
                     <input type="number" id="add-product-price" min="0" step="0.01" required>
                 </div>
                 <div class="product-form-group">
-                    <label for="add-product-image-url">קישור לתמונה:</label>
+                    <label for="add-product-image-url">כתובת תמונה:</label>
                     <input type="text" id="add-product-image-url">
                 </div>
-                <button type="submit">הוסף מוצר</button>
+                <button type="submit">הוספת מוצר</button>
                 <p id="add-product-message"></p>
             </form>
         </section>
 
         <section class="edit-products-list">
-            <h2>ניהול מוצרים קיימים</h2>
+            <h2>עריכת מוצרים</h2>
             <div id="edit-products-container">
-                </div>
+                <!-- כאן יתווספו המוצרים לעריכה -->
+            </div>
         </section>
 
         <section class="orders-list">
-            <h2>הזמנות אחרונות</h2>
+            <h2>רשימת הזמנות</h2>
             <div id="orders-container">
-                </div>
+                <!-- כאן יתווספו ההזמנות -->
+            </div>
         </section>
     </main>
 
