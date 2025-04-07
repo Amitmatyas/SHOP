@@ -3,23 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הוספת פרטים</title>
+    <title>הרשמה</title>
     <style>
         /* סגנון בסיסי - תוכל להוסיף CSS מפורט יותר */
         body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; text-align: center; }
         header { margin-bottom: 20px; }
-        form { max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; }
-        label { margin-top: 10px; }
-        input { padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+        form#register-form { max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; }
+        form#register-form label { margin-top: 10px; }
+        form#register-form input { padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        form#register-form button { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
         .error-message { color: red; margin-top: 10px; }
+        p { margin-top: 20px; }
+        a { color: #007bff; text-decoration: none; }
     </style>
 </head>
 <body>
     <header>
-        <h1>הוסף את הפרטים שלך</h1>
-        <p>זה נדרש רק בפעם הראשונה.</p>
+        <h1>הרשמה לחנות</h1>
     </header>
 
     <main>
-        <form id="details-form">
+        <form id="register-form">
+            <div>
+                <label for="register-email">כתובת אימייל:</label>
+                <input type="email" id="register-email" name="email" required>
+            </div>
+            <div>
+                <label for="register-password">סיסמה:</label>
+                <input type="password" id="register-password" name="password" required>
+            </div>
+            <p class="error-message" id="register-error"></p>
+            <button type="submit">הירשם</button>
+        </form>
+
+        <p>כבר יש לך חשבון? <a href="index.html">התחבר כאן</a></p>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 החנות שלי. כל הזכויות שמורות.</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+        import { getFirestore, doc, setDoc } from "firebase/firestore";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
+          authDomain: "shop-75354.firebaseapp.com",
+          projectId: "shop-75354",
+          storageBucket: "shop-75354.firebasestorage.app",
+          messagingSenderId: "602207987151",
+          appId: "1:602207987151:web:839140b4a430e004cedeba",
+          measurementId: "G-SD5W9ZK0B2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const registerForm = document.getElementById('register-form');
+        const registerError = document.getElementById('register-error');
+
+        async function createUserDocument(user) {
+            const userDocRef = doc(db, 'users', user.uid);
+            await setDoc(userDocRef, {
+                email: user.email,
+                role: 'customer'
+            });
+        }
+
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = registerForm.email.value;
+            const password = registerForm.password.value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                await createUserDocument(user);
+                sessionStorage.setItem('firstSignIn', 'true');
+                window.location.href = '/register-details.html';
+            } catch (error) {
+                console.error('שגיאה בהרשמה:', error);
+                registerError.textContent = 'שגיאה בהרשמה: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
