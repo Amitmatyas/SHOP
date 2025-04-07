@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>השלמת פרטים</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; text-align: center; }
+        form#details-form { max-width: 300px; margin: 0 auto; display: flex; flex-direction: column; }
+        form#details-form label { margin-top: 10px; }
+        form#details-form input { padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        form#details-form button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+        .error-message { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>השלמת פרטים</h1>
+        <p>אנא מלאו את הפרטים הבאים כדי להשלים את ההרשמה.</p>
+    </header>
+
+    <main>
+        <form id="details-form">
+            <div>
+                <label for="phone">מספר טלפון:</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+            <div>
+                <label for="address">כתובת:</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+            <p class="error-message" id="details-error"></p>
+            <button type="submit">שמור פרטים</button>
+        </form>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 החנות שלי. כל הזכויות שמורות.</p>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
+          authDomain: "shop-75354.firebaseapp.com",
+          projectId: "shop-75354",
+          storageBucket: "shop-75354.firebasestorage.app",
+          messagingSenderId: "602207987151",
+          appId: "1:602207987151:web:839140b4a430e004cedeba",
+          measurementId: "G-SD5W9ZK0B2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const detailsForm = document.getElementById('details-form');
+        const detailsError = document.getElementById('details-error');
+
+        detailsForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const phone = detailsForm.phone.value;
+            const address = detailsForm.address.value;
+            const user = auth.currentUser;
+
+            if (user) {
+                const userDocRef = doc(db, 'users', user.uid);
+                try {
+                    await updateDoc(userDocRef, {
+                        phone: phone,
+                        address: address
+                    });
+                    // לאחר שמירת הפרטים, הפנה את המשתמש לדף הבית או לדף אחר
+                    window.location.href = '/';
+                } catch (error) {
+                    console.error('שגיאה בעדכון הפרטים:', error);
+                    detailsError.textContent = 'שגיאה בשמירת הפרטים.';
+                }
+            } else {
+                // המשתמש לא מחובר - יש לטפל במצב הזה (לא אמור לקרות כאן)
+                console.error('משתמש לא מחובר בדף השלמת פרטים.');
+                detailsError.textContent = 'אירעה שגיאה. אנא נסה שוב.';
+            }
+        });
+    </script>
+</body>
+</html>
