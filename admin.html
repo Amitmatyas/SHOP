@@ -64,6 +64,10 @@
             color: red;
             margin-top: 10px;
         }
+        .success-message {
+            color: green;
+            margin-top: 10px;
+        }
         .admin-section {
             background-color: #f9f9f9;
             padding: 20px;
@@ -113,6 +117,17 @@
         #options-list .option .remove-option-button:hover {
             background-color: #c82333;
         }
+        .back-home {
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        .back-home a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-home a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -131,6 +146,7 @@
                 <p id="login-error" class="error-message"></p>
                 <button type="submit">התחבר</button>
             </form>
+            <p class="back-home"><a href="/">חזרה למסך הבית</a></p>
         </section>
 
         <div id="admin-content">
@@ -226,21 +242,31 @@
         </div>
     </div>
 
+    <template id="option-template">
+        <div class="option">
+            <label for="option-name">שם האופציה:</label>
+            <input type="text" class="option-name" required>
+            <label for="option-values">ערכים (מופרדים בפסיקים):</label>
+            <input type="text" class="option-values">
+            <button type="button" class="remove-option-button">הסר אופציה</button>
+        </div>
+    </template>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // **הגדרות Firebase כאן** - ודא שהן נכונות!
         const firebaseConfig = {
-              apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
-  authDomain: "shop-75354.firebaseapp.com",
-  projectId: "shop-75354",
-  storageBucket: "shop-75354.firebasestorage.app",
-  messagingSenderId: "602207987151",
-  appId: "1:602207987151:web:839140b4a430e004cedeba",
-  measurementId: "G-SD5W9ZK0B2"
-};
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -278,7 +304,7 @@
         const editProductError = document.getElementById('edit-product-error');
         const editOptionsListContainer = document.getElementById('edit-options-list');
         const addEditOptionButton = document.getElementById('add-edit-option-button');
-        const editOptionTemplate = document.getElementById('option-template'); // שימוש באותה תבנית
+        const editOptionTemplate = document.getElementById('option-template');
 
         const textControlForm = document.getElementById('text-control-form');
         const aboutTextarea = document.getElementById('about-text');
@@ -307,11 +333,13 @@
             const email = adminLoginForm.email.value;
             const password = adminLoginForm.password.value;
 
-            if (email.endsWith(adminEmailSuffix) && password === adminPassword) {
+            if (!email.endsWith(adminEmailSuffix)) {
+                loginError.textContent = 'אינך מנהל.';
+            } else if (password !== adminPassword) {
+                loginError.textContent = 'שגיאה בהתחברות. אנא בדוק שוב את הפרטים.';
+            } else {
                 localStorage.setItem('isAdminLoggedIn', 'true');
                 checkAdminStatus(); // עדכן את התצוגה לאחר התחברות מוצלחת
-            } else {
-                loginError.textContent = 'שגיאה בהתחברות. אנא בדוק את האימייל והסיסמה.';
             }
         });
 
@@ -362,7 +390,8 @@
                     addProductError.textContent = 'אירעה שגיאה בהוספת המוצר.';
                     addProductMessage.textContent = '';
                 }
-            } else {addProductError.textContent = 'אנא מלאו את שם המוצר ומחיר תקין.';
+            } else {
+                addProductError.textContent = 'אנא מלאו את שם המוצר ומחיר תקין.';
                 addProductMessage.textContent = '';
             }
         });
