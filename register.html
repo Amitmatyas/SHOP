@@ -43,26 +43,25 @@
         <p>&copy; 2025 החנות שלי. כל הזכויות שמורות.</p>
     </footer>
 
-    <script type="module">
-        import { initializeApp } from "firebase/app";
-        import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-        import { getFirestore, doc, setDoc } from "firebase/firestore";
+<script type="module">
+  // השאר את קונפיגורציית Firebase שלך כאן
+  const firebaseConfig = {
+    apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
+    authDomain: "shop-75354.firebaseapp.com",
+    projectId: "shop-75354",
+    storageBucket: "shop-75354.firebasestorage.app",
+    messagingSenderId: "602207987151",
+    appId: "1:602207987151:web:839140b4a430e004cedeba",
+    measurementId: "G-SD5W9ZK0B2"
+  };
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
-          authDomain: "shop-75354.firebaseapp.com",
-          projectId: "shop-75354",
-          storageBucket: "shop-75354.firebasestorage.app",
-          messagingSenderId: "602207987151",
-          appId: "1:602207987151:web:839140b4a430e004cedeba",
-          measurementId: "G-SD5W9ZK0B2"
-        };
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const registerForm = document.getElementById('register-form');
-        const registerError = document.getElementById('register-error');
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
         async function createUserDocument(user) {
             const userDocRef = doc(db, 'users', user.uid);
