@@ -12,6 +12,7 @@
         form#register-form label { margin-top: 10px; }
         form#register-form input { padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
         form#register-form button { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+        button#google-sign-in { padding: 10px 15px; background-color: #db4437; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
         .error-message { color: red; margin-top: 10px; }
         p { margin-top: 20px; }
         a { color: #007bff; text-decoration: none; }
@@ -36,6 +37,8 @@
             <button type="submit">הירשם</button>
         </form>
 
+        <button id="google-sign-in">התחבר עם Google</button>
+
         <p>כבר יש לך חשבון? <a href="index.html">התחבר כאן</a></p>
     </main>
 
@@ -46,56 +49,95 @@
     <script type="module">
         // קונפיגורציית Firebase שלך
         const firebaseConfig = {
-          apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
-          authDomain: "shop-75354.firebaseapp.com",
-          projectId: "shop-75354",
-          storageBucket: "shop-75354.firebasestorage.app",
-          messagingSenderId: "602207987151",
-          appId: "1:602207987151:web:839140b4a430e004cedeba",
-          measurementId: "G-SD5W9ZK0B2"
+            apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
+            authDomain: "shop-75354.firebaseapp.com",
+            projectId: "shop-75354",
+            storageBucket: "shop-75354.firebasestorage.app",
+            messagingSenderId: "602207987151",
+            appId: "1:602207987151:web:839140b4a430e004cedeba",
+            measurementId: "G-SD5W9ZK0B2"
         };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const registerForm = document.getElementById('register-form');
         const registerError = document.getElementById('register-error');
+        const googleSignInButton = document.getElementById('google-sign-in');
 
         async function createUserDocument(user) {
             const userDocRef = doc(db, 'users', user.uid);
+            const isAdmin = user.email.endsWith('@titus-admin.com');
             await setDoc(userDocRef, {
                 email: user.email,
-                role: 'customer'
+                role: isAdmin ? 'admin' : 'customer',
+                detailsFilled: false // שדה שיציין אם המשתמש מילא פרטים נוספים
             });
         }
 
-auth.createUserWithEmailAndPassword(email, password)
-  .then((userCredential) => {
-    // משתמש נוצר בהצלחה
-    console.log("משתמש נרשם בהצלחה!", userCredential.user);
+        if (registerForm) {
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = registerForm.querySelector('#register-email').value;
+                const password = registerForm.querySelector('#register-password').value;
 
-    // לאחר יצירת המשתמש, שמור את הנתונים הנוספים שלו ב-Firestore
-    return db.collection('users').doc(userCredential.user.uid).set({
-      email: email,
-      // הוסף כאן שדות נוספים שאתה רוצה לשמור
-      // לדוגמה: firstName: '', lastName: '', phone: ''
-    });
-  })
-  .then(() => {
-    // לאחר שמירת הנתונים (או אם אין נתונים נוספים לשמור)
-    // בצע הפניה לדף מילוי הפרטים
-    window.location.href = 'register-details.html'; // שנה את הנתיב לדף שלך
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    console.error("שגיאה ברישום:", errorCode, errorMessage);
-    // הצג למשתמש הודעת שגיאה
-  });
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    console.log("משתמש נרשם בהצלחה!", userCredential.user);
+                    await createUserDocument(userCredential.user);
+                    window.location.href = 'register-details.html';
+                } catch (error) {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.error("שגיאה ברישום:", errorCode, errorMessage);
+                    registerError.textContent = errorMessage;
+                }
+            });
+        }
+
+        if (googleSignInButton) {
+            const provider = new GoogleAuthProvider();
+            googleSignInButton.addEventListener('click', async () => {
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+
+                    // בדוק אם זה משתמש חדש (כניסה ראשונה)
+                    if (result.additionalUserInfo?.isNewUser) {
+                        await createUserDocument(user);
+                        window.location.href = 'register-details.html';
+                    } else {
+                        // אם המשתמש כבר קיים, בדוק אם הפרטים שלו מולאו
+                        const userDocRef = doc(db, 'users', user.uid);
+                        const docSnap = await getDoc(userDocRef);
+                        if (docSnap.exists() && !docSnap.data().detailsFilled) {
+                            window.location.href = 'register-details.html';
+                        } else {
+                            window.location.href = 'dashboard.html'; // הפניה לדף הראשי אם כבר מילא פרטים
+                        }
+                    }
+                } catch (error) {
+                    console.error("שגיאה בכניסה עם Google:", error);
+                    // הצג הודעת שגיאה למשתמש
+                }
+            });
+        }
+
+        // האזנה לשינויי סטטוס משתמש כדי לטפל במקרים בהם משתמש מחובר ופרטיו לא מלאים
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const userDocRef = doc(db, 'users', user.uid);
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists() && !docSnap.data().detailsFilled && window.location.pathname !== '/register-details.html') {
+                    // אם המשתמש מחובר, הפרטים לא מלאים, והוא לא נמצא כבר בדף הפרטים - הפנה אותו
+                    window.location.href = 'register-details.html';
+                }
+            }
+        });
     </script>
 </body>
 </html>
