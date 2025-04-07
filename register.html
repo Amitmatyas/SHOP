@@ -12,7 +12,6 @@
         form#register-form label { margin-top: 10px; }
         form#register-form input { padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
         form#register-form button { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
-        button#google-sign-in { padding: 10px 15px; background-color: #db4437; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
         .error-message { color: red; margin-top: 10px; }
         p { margin-top: 20px; }
         a { color: #007bff; text-decoration: none; }
@@ -36,9 +35,7 @@
             <p class="error-message" id="register-error"></p>
             <button type="submit">הירשם</button>
         </form>
-
-        <button id="google-sign-in">התחבר עם Google</button>
-
+        
         <p>כבר יש לך חשבון? <a href="index.html">התחבר כאן</a></p>
     </main>
 
@@ -67,8 +64,6 @@
         const db = getFirestore(app);
         const registerForm = document.getElementById('register-form');
         const registerError = document.getElementById('register-error');
-        const googleSignInButton = document.getElementById('google-sign-in');
-
         async function createUserDocument(user) {
             const userDocRef = doc(db, 'users', user.uid);
             const isAdmin = user.email.endsWith('@titus-admin.com');
@@ -95,34 +90,6 @@
                     const errorMessage = error.message;
                     console.error("שגיאה ברישום:", errorCode, errorMessage);
                     registerError.textContent = errorMessage;
-                }
-            });
-        }
-
-        if (googleSignInButton) {
-            const provider = new GoogleAuthProvider();
-            googleSignInButton.addEventListener('click', async () => {
-                try {
-                    const result = await signInWithPopup(auth, provider);
-                    const user = result.user;
-
-                    // בדוק אם זה משתמש חדש (כניסה ראשונה)
-                    if (result.additionalUserInfo?.isNewUser) {
-                        await createUserDocument(user);
-                        window.location.href = 'register-details.html';
-                    } else {
-                        // אם המשתמש כבר קיים, בדוק אם הפרטים שלו מולאו
-                        const userDocRef = doc(db, 'users', user.uid);
-                        const docSnap = await getDoc(userDocRef);
-                        if (docSnap.exists() && !docSnap.data().detailsFilled) {
-                            window.location.href = 'register-details.html';
-                        } else {
-                            window.location.href = 'dashboard.html'; // הפניה לדף הראשי אם כבר מילא פרטים
-                        }
-                    }
-                } catch (error) {
-                    console.error("שגיאה בכניסה עם Google:", error);
-                    // הצג הודעת שגיאה למשתמש
                 }
             });
         }
