@@ -74,14 +74,32 @@
 <body>
     <div class="container">
         <h2>פרטי חשבון</h2>
-        <div id="user-details">
-            <p>טוען פרטים...</p>
-        </div>
-        <div class="button-group">
-            <button id="reset-password-btn">אפס סיסמה</button>
+        <form id="update-profile-form">
+            <div class="form-group">
+                <label for="fullName">שם מלא:</label>
+                <input type="text" id="fullName" name="fullName">
+            </div>
+            <div class="form-group">
+                <label for="email">אימייל:</label>
+                <input type="email" id="email" name="email" readonly>
+            </div>
+            <div class="form-group">
+                <label for="address">כתובת:</label>
+                <input type="text" id="address" name="address">
+            </div>
+            <div class="form-group">
+                <label for="phone">מספר טלפון:</label>
+                <input type="text" id="phone" name="phone">
+            </div>
+            <div class="button-group">
+                <button type="submit">שמור שינויים</button>
+                <button type="button" id="reset-password-btn">אפס סיסמה</button>
+            </div>
+            <p id="update-profile-message" class="success-message"></p>
+            <p id="update-profile-error" class="error-message"></p>
             <p id="reset-password-message" class="success-message"></p>
             <p id="reset-password-error" class="error-message"></p>
-        </div>
+        </form>
     </div>
 
     <script type="module">
@@ -97,14 +115,16 @@
         };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const userDetailsDiv = document.getElementById('user-details');
+        const updateProfileForm = document.getElementById('update-profile-form');
         const resetPasswordBtn = document.getElementById('reset-password-btn');
+        const updateProfileMessage = document.getElementById('update-profile-message');
+        const updateProfileError = document.getElementById('update-profile-error');
         const resetPasswordMessage = document.getElementById('reset-password-message');
         const resetPasswordError = document.getElementById('reset-password-error');
 
@@ -123,28 +143,38 @@
                 const docSnap = await getDoc(userDocRef);
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
-                    userDetailsDiv.innerHTML = `
-                        <div class="form-group">
-                            <label for="fullName">שם מלא:</label>
-                            <input type="text" id="fullName" value="${userData.fullName || ''}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">אימייל:</label>
-                            <input type="email" id="email" value="${auth.currentUser.email}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="address">כתובת:</label>
-                            <input type="text" id="address" value="${userData.address || ''}" readonly>
-                        </div>
-                        `;
-                } else {
-                    userDetailsDiv.innerHTML = '<p class="error-message">לא נמצאו פרטים נוספים.</p>';
+                    document.getElementById('fullName').value = userData.fullName || '';
+                    document.getElementById('email').value = auth.currentUser.email;
+                    document.getElementById('address').value = userData.address || '';
+                    document.getElementById('phone').value = userData.phone || '';
                 }
             } catch (error) {
                 console.error("שגיאה בשליפת פרטי משתמש:", error);
-                userDetailsDiv.innerHTML = '<p class="error-message">אירעה שגיאה בטעינת הפרטים.</p>';
+                updateProfileError.textContent = 'אירעה שגיאה בטעינת הפרטים.';
             }
         }
+
+        updateProfileForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const fullName = updateProfileForm.fullName.value;
+            const address = updateProfileForm.address.value;
+            const phone = updateProfileForm.phone.value;
+
+            try {
+                const userDocRef = doc(db, 'users', auth.currentUser.uid);
+                await updateDoc(userDocRef, {
+                    fullName: fullName,
+                    address: address,
+                    phone: phone
+                });
+                updateProfileMessage.textContent = 'הפרטים עודכנו בהצלחה!';
+                updateProfileError.textContent = '';
+            } catch (error) {
+                console.error("שגיאה בעדכון פרטי משתמש:", error);
+                updateProfileError.textContent = 'אירעה שגיאה בעדכון הפרטים.';
+                updateProfileMessage.textContent = '';
+            }
+        });
 
         resetPasswordBtn.addEventListener('click', async () => {
             resetPasswordMessage.textContent = '';
