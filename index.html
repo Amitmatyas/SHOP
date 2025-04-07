@@ -106,9 +106,10 @@
             border-top: 1px solid #eee;
             padding-top: 20px;
         }
-        #account-link, #cart-link, #logout-link {
+        #account-link, #cart-link, #logout-link, #view-cart-btn {
             text-decoration: none;
             color: #007bff;
+            cursor: pointer;
         }
         #cart-section {
             margin-top: 30px;
@@ -159,7 +160,8 @@
                 <li><a href="#products">מוצרים</a></li>
                 <li><a href="#about">אודות</a></li>
                 <li><a href="#contact">צור קשר</a></li>
-                <li><a href="#" id="cart-link">סל קניות (0)</a></li>
+                <li><a href="#" id="account-link">חשבון</a></li>
+                <li><a href="#" id="view-cart-btn">סל קניות (<span id="cart-item-count">0</span>)</a></li>
                 <li id="logout-li" style="display: none;"><a href="#" id="logout-link">התנתקות</a></li>
             </ul>
         </nav>
@@ -325,6 +327,8 @@
         const cartSection = document.getElementById('cart-section');
         const paypalButtonContainerCart = document.getElementById('paypal-button-container-cart');
         const cartLinkElement = document.getElementById('cart-link');
+        const viewCartButton = document.getElementById('view-cart-btn');
+        const cartItemCountElement = document.getElementById('cart-item-count');
 
         let cart = [];
 
@@ -348,7 +352,7 @@
                         const indexToRemove = parseInt(this.dataset.index);
                         cart.splice(indexToRemove, 1);
                         updateCartDisplay();
-                        cartLinkElement.textContent = `סל קניות (${cart.length})`;
+                        updateCartItemCount();
                     });
                 });
                 cartSection.style.display = 'block';
@@ -362,6 +366,10 @@
             }
             cartTotalElement.textContent = total.toFixed(2);
             renderPayPalButtons(total);
+        }
+
+        function updateCartItemCount() {
+            cartItemCountElement.textContent =cart.length;
             cartLinkElement.textContent = `סל קניות (${cart.length})`;
         }
 
@@ -373,11 +381,12 @@
                 const price = productItem.dataset.price;
                 cart.push({ id, name, price });
                 updateCartDisplay();
+                updateCartItemCount();
             });
         });
 
         function renderPayPalButtons(totalAmount) {
-            paypalButtonContainerpaypalButtonContainerCart.innerHTML = '';
+            paypalButtonContainerCart.innerHTML = '';
             if (totalAmount > 0) {
                 paypal.Buttons({
                     createOrder: function(data, actions) {
@@ -395,6 +404,7 @@
                             alert('התשלום הושלם בהצלחה בסכום של ' + details.purchase_units[0].amount.value + ' ₪!');
                             cart = [];
                             updateCartDisplay();
+                            updateCartItemCount();
                         });
                     },
                     onCancel: function(data, actions) {
@@ -409,6 +419,11 @@
             }
         }
 
+        viewCartButton?.addEventListener('click', () => {
+            const cartSectionElement = document.getElementById('cart-section');
+            cartSectionElement?.scrollIntoView({ behavior: 'smooth' });
+        });
+
         // הצג את סעיף המוצרים בהתחלה (לאחר התחברות - כאן לצורך הדגמה)
         if (document.getElementById('products')) {
             document.getElementById('products').style.display = 'block';
@@ -416,6 +431,9 @@
         if (document.getElementById('cart-section')) {
             document.getElementById('cart-section').style.display = 'none';
         }
+
+        // עדכן את מספר הפריטים בסל בהתחלה
+        updateCartItemCount();
     </script>
 </body>
 </html>
