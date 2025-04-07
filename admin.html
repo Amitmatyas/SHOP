@@ -3,139 +3,405 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>החנות שלי - דף ניהול</title>
+    <title>פאנל ניהול</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
-        header nav ul { list-style: none; padding: 0; }
-        header nav ul li { display: inline; margin-right: 10px; }
-        .add-product-form, .orders-list, .edit-products-list { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
-        .product-form-group { margin-bottom: 10px; }
-        label { display: block; margin-bottom: 5px; }
-        input[type="text"], input[type="number"], textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-        .order-item, .edit-product-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-        .edit-product-item button { margin-left: 10px; }
+        /* סגנונות CSS בסיסיים - תוכל להרחיב ולשנות */
+        body {
+            font-family: 'Heebo', Arial, sans-serif;
+            margin: 20px;
+            direction: rtl;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .admin-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .order-list {
+            list-style: none;
+            padding: 0;
+        }
+        .order-item {
+            border: 1px solid #eee;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+        }
+        .order-details {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .edit-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .edit-form button {
+            grid-column: 1 / -1;
+            background-color: #007bff;
+        }
+        .edit-form button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>ניהול החנות</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">חזרה לחנות</a></li>
-                <li><a href="#" id="logout-link-admin">התנתקות</a></li>
-            </ul>
-        </nav>
-    </header>
+    <h2>פאנל ניהול</h2>
 
-    <main class="admin-page">
-        <section class="add-product-form">
-            <h2>הוספת מוצר חדש</h2>
-            <form id="add-product-form">
-                <div class="product-form-group">
-                    <label for="add-product-name">שם מוצר:</label>
-                    <input type="text" id="add-product-name" required>
+    <div class="admin-section">
+        <h3>הוספת מוצר חדש</h3>
+        <form id="add-product-form">
+            <label for="new-product-name">שם המוצר:</label>
+            <input type="text" id="new-product-name" required>
+
+            <label for="new-product-price">מחיר:</label>
+            <input type="number" id="new-product-price" min="0" step="0.01" required>
+
+            <label for="new-product-description">תיאור:</label>
+            <textarea id="new-product-description"></textarea>
+
+            <label for="new-product-image-url">קישור לתמונה:</label>
+            <input type="text" id="new-product-image-url">
+
+            <button type="submit">הוסף מוצר</button>
+            <p id="add-product-message" class="success-message"></p>
+            <p id="add-product-error" class="error-message"></p>
+        </form>
+    </div>
+
+    <div class="admin-section">
+        <h3>ניהול הזמנות</h3>
+        <ul id="orders-list" class="order-list">
+            <li>טוען הזמנות...</li>
+        </ul>
+        <div id="order-details-container" style="display: none;">
+            <h4>פרטי הזמנה</h4>
+            <div id="order-details"></div>
+            <div id="order-management-buttons">
                 </div>
-                <div class="product-form-group">
-                    <label for="add-product-description">תיאור מוצר:</label>
-                    <textarea id="add-product-description"></textarea>
-                </div>
-                <div class="product-form-group">
-                    <label for="add-product-price">מחיר:</label>
-                    <input type="number" id="add-product-price" min="0" step="0.01" required>
-                </div>
-                <div class="product-form-group">
-                    <label for="add-product-image-url">כתובת תמונה:</label>
-                    <input type="text" id="add-product-image-url">
-                </div>
-                <button type="submit">הוספת מוצר</button>
-                <p id="add-product-message"></p>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <h3>שינוי פרטי מוצרים</h3>
+        <ul id="product-list-edit">
+            <li>טוען מוצרים לעריכה...</li>
+        </ul>
+        <div id="edit-product-container" style="display: none;">
+            <h4>עריכת מוצר</h4>
+            <form id="edit-product-form" class="edit-form">
+                <input type="hidden" id="edit-product-id">
+                <label for="edit-product-name">שם:</label>
+                <input type="text" id="edit-product-name">
+                <label for="edit-product-price">מחיר:</label>
+                <input type="number" id="edit-product-price" min="0" step="0.01">
+                <label for="edit-product-description">תיאור:</label>
+                <textarea id="edit-product-description"></textarea>
+                <label for="edit-product-image-url">קישור תמונה:</label>
+                <input type="text" id="edit-product-image-url">
+                <button type="submit">שמור שינויים</button>
+                <p id="edit-product-message" class="success-message"></p>
+                <p id="edit-product-error" class="error-message"></p>
             </form>
-        </section>
+        </div>
+    </div>
 
-        <section class="edit-products-list">
-            <h2>עריכת מוצרים</h2>
-            <div id="edit-products-container">
-                <!-- כאן יתווספו המוצרים לעריכה -->
+    <div class="admin-section">
+        <h3>שליטה על טקסטים</h3>
+        <form id="text-control-form">
+            <div>
+                <label for="about-text">טקסט אודות:</label>
+                <textarea id="about-text"></textarea>
             </div>
-        </section>
-
-        <section class="orders-list">
-            <h2>רשימת הזמנות</h2>
-            <div id="orders-container">
-                <!-- כאן יתווספו ההזמנות -->
+            <div>
+                <label for="contact-text">טקסט צור קשר:</label>
+                <textarea id="contact-text"></textarea>
             </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 החנות שלי. כל הזכויות שמורות.</p>
-    </footer>
+            <button type="submit">שמור טקסטים</button>
+            <p id="text-control-message" class="success-message"></p>
+            <p id="text-control-error" class="error-message"></p>
+        </form>
+    </div>
 
     <script type="module">
-        // קונפיגורציית Firebase שלך כאן
-        const firebaseConfig = {
-            apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
-            authDomain: "shop-75354.firebaseapp.com",
-            projectId: "shop-75354",
-            storageBucket: "shop-75354.firebasestorage.app",
-            messagingSenderId: "602207987151",
-            appId: "1:602207987151:web:839140b4a430e004cedeba",
-            measurementId: "G-SD5W9ZK0B2"
-        };
-
+        // כאן יגיע קוד ה-JavaScript שלנו
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // **הגדרות Firebase כאן** - ודא שהן נכונות!
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const logoutLink = document.getElementById('logout-link-admin');
         const addProductForm = document.getElementById('add-product-form');
         const addProductMessage = document.getElementById('add-product-message');
+        const addProductError = document.getElementById('add-product-error');
 
-        logoutLink?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await signOut(auth);
-                window.location.href = 'index.html'; // מוביל לדף ההתחברות
-            } catch (error) {
-                console.error('שגיאה בהתנתקות:', error);
+        const ordersList = document.getElementById('orders-list');
+        const orderDetailsContainer = document.getElementById('order-details-container');
+        const orderDetailsDiv = document.getElementById('order-details');
+        const orderManagementButtonsDiv = document.getElementById('order-management-buttons');
+
+        const productListEdit = document.getElementById('product-list-edit');
+        const editProductContainer = document.getElementById('edit-product-container');
+        const editProductForm = document.getElementById('edit-product-form');
+        const editProductIdInput = document.getElementById('edit-product-id');
+        const editProductNameInput = document.getElementById('edit-product-name');
+        const editProductPriceInput = document.getElementById('edit-product-price');
+        const editProductDescriptionInput = document.getElementById('edit-product-description');
+        const editProductImageUrlInput = document.getElementById('edit-product-image-url');
+        const editProductMessage = document.getElementById('edit-product-message');
+        const editProductError = document.getElementById('edit-product-error');
+
+        const textControlForm = document.getElementById('text-control-form');
+        const aboutTextarea = document.getElementById('about-text');
+        const contactTextarea = document.getElementById('contact-text');
+        const textControlMessage = document.getElementById('text-control-message');
+        const textControlError = document.getElementById('text-control-error');
+
+        async function checkAdmin() {
+            const user = auth.currentUser;
+            if (user) {
+                // כאן תהיה הלוגיקה לבדוק אם המשתמש הוא מנהל
+                // לדוגמה, בדיקה של כתובת האימייל או שדה מותאם אישית
+                const adminEmails = ["youradmin@email.com", "anotheradmin@email.com"];
+                if (!adminEmails.includes(user.email)) {
+                    window.location.href = '/'; // הפניה לדף הבית אם לא מנהל
+                }
+            } else {
+                window.location.href = '/login.html'; // הפניה להתחברות אם אין משתמש מחובר
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                checkAdmin();
+                loadOrders();
+                loadProductsForEdit();
+                loadTextControls();
+            } else {
+                window.location.href = '/login.html';
             }
         });
 
+        // 1. הוספת מוצר חדש
         addProductForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = addProductForm['add-product-name'].value;
-            const description = addProductForm['add-product-description'].value;
-            const price = parseFloat(addProductForm['add-product-price'].value);
-            const imageUrl = addProductForm['add-product-image-url'].value;
+            const name = addProductForm['new-product-name'].value;
+            const price = parseFloat(addProductForm['new-product-price'].value);
+            const description = addProductForm['new-product-description'].value;
+            const imageUrl = addProductForm['new-product-image-url'].value;
 
-            try {
-                await addDoc(collection(db, 'products'), {
-                    name,
-                    description,
-                    price,
-                    imageUrl
-                });
-                addProductMessage.textContent = 'המוצר נוסף בהצלחה!';
-                addProductForm.reset();
-            } catch (error) {
-                console.error('שגיאה בהוספת מוצר:', error);
-                addProductMessage.textContent = 'שגיאה בהוספת מוצר.';
+            if (name && !isNaN(price)) {
+                try {
+                    await addDoc(collection(db, 'products'), {
+                        name: name,
+                        price: price,
+                        description: description,
+                        imageUrl: imageUrl
+                    });
+                    addProductForm.reset();
+                    addProductMessage.textContent = 'המוצר נוסף בהצלחה!';
+                    addProductError.textContent = '';
+                } catch (error) {
+                    console.error("שגיאה בהוספת מוצר:", error);
+                    addProductError.textContent = 'אירעה שגיאה בהוספת המוצר.';
+                    addProductMessage.textContent = '';
+                }
+            } else {
+                addProductError.textContent = 'אנא מלאו את שם המוצר ומחיר תקין.';
+                addProductMessage.textContent = '';
             }
         });
 
-        window.addEventListener('load', () => {
-            onAuthStateChanged(auth, (user) => {
-                if (!user) {
-                    window.location.href = 'index.html';
-                } else if (!user.email.endsWith("@titus-admin.co.il")) {
-                    window.location.href = 'index.html';
+        // 2. הצגת הזמנות (דורש מבנה נתונים ספציפי של ההזמנות ב-Firestore)
+        async function loadOrders() {
+            ordersList.innerHTML = 'טוען הזמנות...';
+            // **הנחה:** יש לך אוסף בשם 'orders' עם פרטי ההזמנה
+            const ordersRef = collection(db, 'orders');
+            onSnapshot(ordersRef, (snapshot) => {
+                ordersList.innerHTML = '';
+                if (!snapshot.empty) {
+                    snapshot.forEach(doc => {
+                        const order = doc.data();
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('order-item');
+                        listItem.textContent = `הזמנה #${doc.id} - ${order.customerName || 'שם לא זמין'} - ${order.totalAmount || 'סכום לא זמין'} ₪`;
+                        listItem.addEventListener('click', () => showOrderDetails(doc.id, order));
+                        ordersList.appendChild(listItem);
+                    });
+                } else {
+                    ordersList.innerHTML = 'אין הזמנות.';
                 }
+            }, (error) => {
+                console.error("שגיאה בטעינת הזמנות:", error);
+                ordersList.innerHTML = '<li class="error-message">אירעה שגיאה בטעינת ההזמנות.</li>';
             });
+        }
+
+        function showOrderDetails(orderId, order) {
+            orderDetailsDiv.innerHTML = `
+                <p><b>מספר הזמנה:</b> ${orderId}</p>
+                <p><b>שם לקוח:</b> ${order.customerName || 'לא זמין'}</p>
+                <p><b>אימייל:</b> ${order.customerEmail || 'לא זמין'}</p>
+                <p><b>כתובת משלוח:</b> ${order.shippingAddress || 'לא זמין'}</p>
+                <p><b>סך הכל:</b> ${order.totalAmount || 'לא זמין'} ₪</p>
+                `;
+            orderManagementButtonsDiv.innerHTML = `
+                <button>סמן כטופל</button>
+                <button>צור קשר עם לקוח</button>
+                `;
+            orderDetailsContainer.style.display = 'block';
+        }
+
+        // 3. שינוי פרטי המוצרים
+        async function loadProductsForEdit() {
+            productListEdit.innerHTML = 'טוען מוצרים לעריכה...';
+            const productsRef = collection(db, 'products');
+            onSnapshot(productsRef, (snapshot) => {
+                productListEdit.innerHTML = '';
+                if (!snapshot.empty) {
+                    snapshot.forEach(doc => {
+                        const product = doc.data();
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${product.name} (ID: ${doc.id})`;
+                        listItem.addEventListener('click', () => populateEditForm(doc.id, product));
+                        productListEdit.appendChild(listItem);
+                    });
+                } else {
+                    productListEdit.innerHTML = 'אין מוצרים לעריכה.';
+                }
+            }, (error) => {
+                console.error("שגיאה בטעינת מוצרים לעריכה:", error);
+                productListEdit.innerHTML = '<li class="error-message">אירעה שגיאה בטעינת המוצרים.</li>';
+            });
+        }
+
+        function populateEditForm(productId, product) {
+            editProductIdInput.value = productId;
+            editProductNameInput.value = product.name || '';
+            editProductPriceInput.value = product.price || '';
+            editProducteditProductDescriptionInput.value = product.description || '';
+            editProductImageUrlInput.value = product.imageUrl || '';
+            editProductContainer.style.display = 'block';
+        }
+
+        editProductForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productId = editProductIdInput.value;
+            const name = editProductNameInput.value;
+            const price = parseFloat(editProductPriceInput.value);
+            const description = editProductDescriptionInput.value;
+            const imageUrl = editProductImageUrlInput.value;
+
+            if (productId && name && !isNaN(price)) {
+                try {
+                    const productDocRef = doc(db, 'products', productId);
+                    await updateDoc(productDocRef, {
+                        name: name,
+                        price: price,
+                        description: description,
+                        imageUrl: imageUrl
+                    });
+                    editProductMessage.textContent = 'המוצר עודכן בהצלחה!';
+                    editProductError.textContent = '';
+                    editProductForm.reset();
+                    editProductContainer.style.display = 'none';
+                    loadProductsForEdit(); // רענון רשימת המוצרים
+                } catch (error) {
+                    console.error("שגיאה בעדכון מוצר:", error);
+                    editProductError.textContent = 'אירעה שגיאה בעדכון המוצר.';
+                    editProductMessage.textContent = '';
+                }
+            } else {
+                editProductError.textContent = 'אנא מלאו את כל הפרטים של המוצר.';
+                editProductMessage.textContent = '';
+            }
+        });
+
+        // 4. שליטה על הטקסטים של צור קשר ואודות
+        async function loadTextControls() {
+            const textControlDocRef = doc(db, 'siteText', 'aboutContact');
+            const docSnap = await getDoc(textControlDocRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                aboutTextarea.value = data.about || '';
+                contactTextarea.value = data.contact || '';
+            } else {
+                console.log("לא נמצאו טקסטים לשליטה.");
+            }
+        }
+
+        textControlForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const aboutText = aboutTextarea.value;
+            const contactText = contactTextarea.value;
+
+            try {
+                const textControlDocRef = doc(db, 'siteText', 'aboutContact');
+                await updateDoc(textControlDocRef, {
+                    about: aboutText,
+                    contact: contactText
+                });
+                textControlMessage.textContent = 'הטקסטים עודכנו בהצלחה!';
+                textControlError.textContent = '';
+            } catch (error) {
+                console.error("שגיאה בעדכון טקסטים:", error);
+                textControlError.textContent = 'אירעה שגיאה בעדכון הטקסטים.';
+                textControlMessage.textContent = '';
+            }
         });
     </script>
 </body>
