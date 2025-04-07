@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חשבון</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Heebo', Arial, sans-serif;
+            margin: 20px;
+            direction: rtl;
+            text-align: right;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: red;
+            margin-top: 10px;
+        }
+        .success-message {
+            color: green;
+            margin-top: 10px;
+        }
+        .button-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>פרטי חשבון</h2>
+        <div id="user-details">
+            <p>טוען פרטים...</p>
+        </div>
+        <div class="button-group">
+            <button id="reset-password-btn">אפס סיסמה</button>
+            <p id="reset-password-message" class="success-message"></p>
+            <p id="reset-password-error" class="error-message"></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getAuth, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { app } from '../firebase-config.js'; // נתיב לקובץ התצורה שלך
+
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const userDetailsDiv = document.getElementById('user-details');
+        const resetPasswordBtn = document.getElementById('reset-password-btn');
+        const resetPasswordMessage = document.getElementById('reset-password-message');
+        const resetPasswordError = document.getElementById('reset-password-error');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                await fetchUserDetails(user.uid);
+            } else {
+                // משתמש לא מחובר, הפנה לדף התחברות
+                window.location.href = '/login.html';
+            }
+        });
+
+        async function fetchUserDetails(uid) {
+            const userDocRef = doc(db, 'users', uid);
+            try {
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const userData = docSnap.data();
+                    userDetailsDiv.innerHTML = `
+                        <div class="form-group">
+                            <label for="fullName">שם מלא:</label>
+                            <input type="text" id="fullName" value="${userData.fullName || ''}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">אימייל:</label>
+                            <input type="email" id="email" value="${auth.currentUser.email}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">כתובת:</label>
+                            <input type="text" id="address" value="${userData.address || ''}" readonly>
+                        </div>
+                        `;
+                } else {
+                    userDetailsDiv.innerHTML = '<p class="error-message">לא נמצאו פרטים נוספים.</p>';
+                }
+            } catch (error) {
+                console.error("שגיאה בשליפת פרטי משתמש:", error);
+                userDetailsDiv.innerHTML = '<p class="error-message">אירעה שגיאה בטעינת הפרטים.</p>';
+            }
+        }
+
+        resetPasswordBtn.addEventListener('click', async () => {
+            resetPasswordMessage.textContent = '';
+            resetPasswordError.textContent = '';
+            try {
+                await sendPasswordResetEmail(auth, auth.currentUser.email);
+                resetPasswordMessage.textContent = 'קישור לאיפוס סיסמה נשלח לכתובת האימייל שלך.';
+            } catch (error) {
+                console.error("שגיאה בשליחת מייל לאיפוס סיסמה:", error);
+                resetPasswordError.textContent = 'אירעה שגיאה בשליחת המייל לאיפוס סיסמה.';
+            }
+        });
+    </script>
+</body>
+</html>
