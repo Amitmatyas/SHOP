@@ -22,12 +22,20 @@
     <main>
         <form id="details-form">
             <div>
+                <label for="fullName">שם מלא:</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+            <div>
                 <label for="phone">מספר טלפון:</label>
                 <input type="tel" id="phone" name="phone" required>
             </div>
             <div>
-                <label for="address">כתובת:</label>
+                <label for="address">כתובת מלאה:</label>
                 <input type="text" id="address" name="address" required>
+            </div>
+            <div>
+                <label for="zipCode">מיקוד:</label>
+                <input type="text" id="zipCode" name="zipCode" required>
             </div>
             <p class="error-message" id="details-error"></p>
             <button type="submit">שמור פרטים</button>
@@ -61,16 +69,20 @@
 
         detailsForm.addEventListener('submit', async (event) => {
             event.preventDefault();
+            const fullName = detailsForm.fullName.value;
             const phone = detailsForm.phone.value;
             const address = detailsForm.address.value;
+            const zipCode = detailsForm.zipCode.value;
             const user = auth.currentUser;
 
             if (user) {
                 const userDocRef = doc(db, 'users', user.uid);
                 try {
                     await updateDoc(userDocRef, {
+                        fullName: fullName,
                         phone: phone,
-                        address: address
+                        address: address,
+                        zipCode: zipCode
                     });
                     // לאחר שמירת הפרטים, הפנה את המשתמש לדף הבית או לדף אחר
                     window.location.href = '/';
