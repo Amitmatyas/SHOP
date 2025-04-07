@@ -85,10 +85,22 @@
     </div>
 
     <script type="module">
+        // **הגדרות Firebase כאן**
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM", // **החלף עם ה-API Key שלך!**
+            authDomain: "shop-75354.firebaseapp.com",      // **החלף עם ה-Auth Domain שלך!**
+            projectId: "shop-75354",                      // **החלף עם ה-Project ID שלך!**
+            storageBucket: "shop-75354.firebasestorage.app",// **החלף עם ה-Storage Bucket שלך!**
+            messagingSenderId: "602207987151",            // **החלף עם ה-Messaging Sender ID שלך!**
+            appId: "1:602207987151:web:839140b4a430e004cedeba",// **החלף עם ה-App ID שלך!**
+            measurementId: "G-SD5W9ZK0B2"                // **החלף עם ה-Measurement ID שלך (אופציונלי)!**
+        };
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { app } from '../firebase-config.js'; // נתיב לקובץ התצורה שלך
 
+        const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const userDetailsDiv = document.getElementById('user-details');
