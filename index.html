@@ -653,7 +653,6 @@ function updateCartDisplay() {
     });
 
     async function saveOrderToFirebase(paymentDetails, cartItems, totalAmount, fullName, emailAddress, phoneNumber, fullAddress, postalCode) {
-        // יצירת מספר סידורי ייחודי להזמנה
         const orderSerialNumber = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
 
         const orderData = {
@@ -679,6 +678,16 @@ function updateCartDisplay() {
             }),
             timestamp: new Date()
         };
-    </script>
+
+        try {
+            await setDoc(doc(db, 'orders', orderSerialNumber), orderData);
+            console.log("ההזמנה נשמרה עם מספר סידורי: ", orderSerialNumber);
+            // אפשר גם לשלוח מייל כאן אם תרצה
+        } catch (error) {
+            console.error("שגיאה בשמירת ההזמנה: ", error);
+            alert('אירעה שגיאה בשמירת ההזמנה.');
+        }
+    }
+</script>
 </body>
 </html>
