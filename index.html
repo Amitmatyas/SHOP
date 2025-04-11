@@ -683,18 +683,6 @@ function updateCartDisplay() {
 
     updateCartDisplay(); // טעינת סל קיים מה-localStorage בעת טעינת הדף
     loadProducts(); // טעינת המוצרים מפיירבייס בעת טעינת הדף
-
-            try {
-                const docRef = await addDoc(collection(db, 'orders'), orderData);
-                console.log("הזמנה נשמרה עם ID: ", docRef.id);
-                alert('ההזמנה שלך נשמרה בהצלחה!');
-            } catch (error) {
-                console.error("שגיאה בשמירת ההזמנה: ", error);
-                alert('אירעה שגיאה בשמירת ההזמנה.');
-            }
-
-        updateCartDisplay(); // טעינת סל קיים מה-localStorage בעת טעינת הדף
-        loadProducts(); // טעינת המוצרים מפיירבייס בעת טעינת הדף
     </script>
 </body>
 </html>
