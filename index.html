@@ -637,10 +637,18 @@ cartItemsContainer.addEventListener('click', function(event) {
 });
 
 <script>
+    // משתנים
+    const cartItemsContainer = document.getElementById('cart-items');
+    const cartTotalElement = document.getElementById('cart-total');
+    const cartItemCountElement = document.getElementById('cart-item-count');
+    let cart = JSON.parse(localStorage.getItem('cart')) || {}; // קריאת סל הקניות מה-localStorage
+
+    // עדכון תצוגת סל הקניות
     function updateCartDisplay() {
         cartItemsContainer.innerHTML = '';
         let total = 0;
         let itemCount = 0;
+
         if (Object.keys(cart).length === 0) {
             cartItemsContainer.innerHTML = '<p class="empty-cart-message">סל הקניות ריק.</p>';
             const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
@@ -653,6 +661,7 @@ cartItemsContainer.addEventListener('click', function(event) {
                 const cartItemDiv = document.createElement('div');
                 cartItemDiv.classList.add('cart-item');
                 let optionsText = '';
+
                 if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
                     const optionsArray = [];
                     for (const key in item.selectedOptions) {
@@ -660,6 +669,7 @@ cartItemsContainer.addEventListener('click', function(event) {
                     }
                     optionsText = ` (${optionsArray.join(', ')})`;
                 }
+
                 cartItemDiv.innerHTML = `
                     <span>${item.name}${optionsText} x ${item.quantity}</span>
                     <span>₪${(item.price * item.quantity).toFixed(2)}</span>
@@ -669,12 +679,14 @@ cartItemsContainer.addEventListener('click', function(event) {
                 total += item.price * item.quantity;
                 itemCount += item.quantity;
             }
+
             cartTotalElement.textContent = total.toFixed(2);
             cartItemCountElement.textContent = itemCount;
             localStorage.setItem('cart', JSON.stringify(cart));
 
             const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
             paypalButtonContainer.innerHTML = ''; // טוען מחדש את כפתור PayPal
+
             paypal.Buttons({
                 client: {
                     sandbox: 'AZGFbYTdHsMPlQoJYVYjCjUUKeB83lfi1k5AuDZD_70sr7yHE8Ac247Cv3efDssNxt9g-qNY_uWe54ea' // מזהה הלקוח שלך לסביבת בדיקה
@@ -752,6 +764,10 @@ cartItemsContainer.addEventListener('click', function(event) {
             alert('אירעה שגיאה בשמירת ההזמנה.');
         }
     }
+
+    // קריאה לפונקציה על מנת להציג את סל הקניות
+    updateCartDisplay();
 </script>
 </body>
 </html>
+
