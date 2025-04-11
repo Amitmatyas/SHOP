@@ -413,16 +413,16 @@ footer {
             }
         });
 
-        googleLoginBtn?.addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                const result = await signInWithPopup(auth,auth, provider);
-                // onAuthStateChanged יטפל בהפניה לאחר ההתחברות
-            } catch (error) {
-                console.error('שגיאה בהתחברות עם גוגל:', error.message);
-                loginError.textContent = 'שגיאה בהתחברות עם גוגל.';
-            }
-        });
+googleLoginBtn?.addEventListener('click', async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider); // קריאה מתוקנת
+        console.log("התחברות הצליחה, משתמש:", result.user.displayName);
+    } catch (error) {
+        console.error('שגיאה בהתחברות עם גוגל:', error.message);
+        loginError.textContent = 'שגיאה בהתחברות. בדוק את פרטי החשבון ונסה שוב.';
+    }
+});
 
         logoutLink?.addEventListener('click', async (e) => {
             e.preventDefault();
