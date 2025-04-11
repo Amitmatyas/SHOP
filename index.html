@@ -13,6 +13,7 @@
             text-align: center;
             background-color: #f8f8f8;
             color: #333;
+            scroll-behavior: smooth; /* גלילה חלקה */
         }
 
         header {
@@ -22,6 +23,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         header img {
@@ -73,91 +77,19 @@
             align-items: center;
         }
 
-        #login-section {
-            max-width: 400px;
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        #login-section h2 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        form#login-form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        form#login-form label {
-            margin-top: 10px;
-            color: #555;
-            text-align: right;
-        }
-
-        form#login-form input {
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        form#login-form button {
-            padding: 12px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-
-        form#login-form button:hover {
-            background-color: #0056b3;
-        }
-
-        .error-message {
-            color: red;
-            margin-top: 10px;
-        }
-
-        .google-btn {
-            background-color: #fff;
-            color: #000;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 12px 15px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 20px;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-        }
-
-        .google-btn:hover {
-            background-color: #eee;
-        }
-
         .hidden {
             display: none;
         }
 
-        .product-catalog,
-        .about-us,
-        .contact-info {
+        .section {
             margin-top: 30px;
             padding: 20px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            text-align: right;
+            text-align: center;
+            width: 90%;
+            max-width: 1200px;
         }
 
         footer {
@@ -185,7 +117,7 @@
         </nav>
     </header>
     <main>
-        <section id="login-section">
+        <section id="login-section" class="section">
             <h2>התחברות לחנות</h2>
             <form id="login-form">
                 <div>
@@ -203,15 +135,15 @@
             <button class="google-btn" id="google-login">התחבר עם גוגל</button>
             <p style="margin-top: 20px;">אין לך חשבון? <a href="register.html">הרשם כאן</a></p>
         </section>
-        <section id="products" class="product-catalog hidden">
+        <section id="products" class="section hidden">
             <h2>כל המוצרים</h2>
             <div class="product-grid" id="products-container"></div>
         </section>
-                <section id="about" class="about-us hidden">
+                <section id="about" class="section hidden">
             <h2>אודות החנות שלנו</h2>
             <p>ברוכים הבאים לחנות שלנו! כאן תוכלו למצוא מגוון רחב של מוצרים באיכות גבוהה ובמחירים משתלמים. הצוות שלנו מחויב לשירות מעולה ולחוויית קנייה בלתי נשכחת.</p>
         </section>
-        <section id="contact" class="contact-info hidden">
+        <section id="contact" class="section hidden">
             <h2>צור קשר</h2>
             <p>אם יש לכם שאלות או בקשות, אתם מוזמנים ליצור איתנו קשר בטופס <a href="contact.html">צור קשר</a> או בפרטים הבאים:</p>
             <ul>
