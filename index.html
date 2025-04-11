@@ -637,76 +637,79 @@ cartItemsContainer.addEventListener('click', function(event) {
 });
 
 // עדכון תצוגת סל הקניות
-function updateCartDisplay() {
-    cartItemsContainer.innerHTML = '';
-    let total = 0;
-    let itemCount = 0;
-    if (Object.keys(cart).length === 0) {
-        cartItemsContainer.innerHTML = '<p class="empty-cart-message">סל הקניות ריק.</p>';
-        const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
-        if (paypalButtonContainer) {
-            paypalButtonContainer.innerHTML = ''; // אם הסל ריק, לא מוצג כפתור PayPal
-        }
-    } else {
-        for (const cartKey in cart) {
-            const item = cart[cartKey];
-            const cartItemDiv = document.createElement('div');
-            cartItemDiv.classList.add('cart-item');
-            let optionsText = '';
-            if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
-                const optionsArray = [];
-                for (const key in item.selectedOptions) {
-                    optionsArray.push(`${key}: ${item.selectedOptions[key]}`);
+<script>
+    // עדכון תצוגת סל הקניות
+    function updateCartDisplay() {
+        cartItemsContainer.innerHTML = '';
+        let total = 0;
+        let itemCount = 0;
+        if (Object.keys(cart).length === 0) {
+            cartItemsContainer.innerHTML = '<p class="empty-cart-message">סל הקניות ריק.</p>';
+            const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
+            if (paypalButtonContainer) {
+                paypalButtonContainer.innerHTML = ''; // אם הסל ריק, לא מוצג כפתור PayPal
+            }
+        } else {
+            for (const cartKey in cart) {
+                const item = cart[cartKey];
+                const cartItemDiv = document.createElement('div');
+                cartItemDiv.classList.add('cart-item');
+                let optionsText = '';
+                if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
+                    const optionsArray = [];
+                    for (const key in item.selectedOptions) {
+                        optionsArray.push(`${key}: ${item.selectedOptions[key]}`);
+                    }
+                    optionsText = ` (${optionsArray.join(', ')})`;
                 }
-                optionsText = ` (${optionsArray.join(', ')})`;
+                cartItemDiv.innerHTML = `
+                    <span>${item.name}${optionsText} x ${item.quantity}</span>
+                    <span>₪${(item.price * item.quantity).toFixed(2)}</span>
+                    <button class="remove-from-cart" data-cart-key="${cartKey}">הסר</button>
+                `;
+                cartItemsContainer.appendChild(cartItemDiv);
+                total += item.price * item.quantity;
+                itemCount += item.quantity;
             }
-            cartItemDiv.innerHTML = `
-                <span>${item.name}${optionsText} x ${item.quantity}</span>
-                <span>₪${(item.price * item.quantity).toFixed(2)}</span>
-                <button class="remove-from-cart" data-cart-key="${cartKey}">הסר</button>
-            `;
-            cartItemsContainer.appendChild(cartItemDiv);
-            total += item.price * item.quantity;
-            itemCount += item.quantity;
-        }
-        cartTotalElement.textContent = total.toFixed(2);
-        cartItemCountElement.textContent = itemCount;
-        localStorage.setItem('cart', JSON.stringify(cart));
+            cartTotalElement.textContent = total.toFixed(2);
+            cartItemCountElement.textContent = itemCount;
+            localStorage.setItem('cart', JSON.stringify(cart));
 
-        const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
-        paypalButtonContainer.innerHTML = ''; // טוען מחדש את כפתור PayPal
-        paypal.Buttons({
-            client: {
-                sandbox: 'AZGFbYTdHsMPlQoJYVYjCjUUKeB83lfi1k5AuDZD_70sr7yHE8Ac247Cv3efDssNxt9g-qNY_uWe54ea' // מזהה הלקוח שלך לסביבת בדיקה
-            },
-            currency: 'ILS',
-            locale: 'he_IL',
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: total.toFixed(2), // הסכום המוחלט מהסל
-                            currency_code: 'ILS'
-                        }
-                    }]
-                });
-            },
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(details) {
-                    alert('התשלום הצליח! תודה על הרכישה.');
-                });
-            },
-            onCancel: function(data) {
-                alert('הלקוח ביטל את התשלום.');
-            },
-            onError: function(err) {
-                alert('אירעה שגיאה בעיבוד התשלום.');
-            }
-        }).render('#paypal-button-container-cart');
+            const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
+            paypalButtonContainer.innerHTML = ''; // טוען מחדש את כפתור PayPal
+            paypal.Buttons({
+                client: {
+                    sandbox: 'AZGFbYTdHsMPlQoJYVYjCjUUKeB83lfi1k5AuDZD_70sr7yHE8Ac247Cv3efDssNxt9g-qNY_uWe54ea' // מזהה הלקוח שלך לסביבת בדיקה
+                },
+                currency: 'ILS',
+                locale: 'he_IL',
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: total.toFixed(2), // הסכום המוחלט מהסל
+                                currency_code: 'ILS'
+                            }
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                        alert('התשלום הצליח! תודה על הרכישה.');
+                    });
+                },
+                onCancel: function(data) {
+                    alert('הלקוח ביטל את התשלום.');
+                },
+                onError: function(err) {
+                    alert('אירעה שגיאה בעיבוד התשלום.');
+                }
+            }).render('#paypal-button-container-cart');
+        }
     }
-}
     
-        cartItemsContainer.addEventListener('click', function(event) {
+    // מאזין להקליק על כפתור ההסרה
+    cartItemsContainer.addEventListener('click', function(event) {
         if (event.target.classList.contains('remove-from-cart')) {
             const cartKeyToRemove = event.target.dataset.cartKey;
             delete cart[cartKeyToRemove];
@@ -714,6 +717,7 @@ function updateCartDisplay() {
         }
     });
 
+    // שמירת ההזמנה ב-Firebase
     async function saveOrderToFirebase(paymentDetails, cartItems, totalAmount, fullName, emailAddress, phoneNumber, fullAddress, postalCode) {
         const orderSerialNumber = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
 
