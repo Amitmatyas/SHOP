@@ -312,22 +312,67 @@ footer {
         </section>
         <section id="products" class="product-catalog" style="display: none;">
             <h2>כל המוצרים</h2>
-            <div class="product-grid" id="products-container">
-                <div class="product-item" data-id="1" data-name="מוצר 1" data-price="99">
-                    <img src="images/product1.jpg" alt="מוצר 1" width="200">
-                    <h3>מוצר 1</h3>
-                    <p>תיאור קצר של מוצר 1.</p>
-                    <p>מחיר: ₪99</p>
-                    <button class="buy-btn">הוסף לעגלה</button>
-                </div>
-                <div class="product-item" data-id="2" data-name="מוצר 2" data-price="149">
-                    <img src="images/product2.jpg" alt="מוצר 2" width="200">
-                    <h3>מוצר 2</h3>
-                    <p>תיאור קצר של מוצר 2.</p>
-                    <p>מחיר: ₪149</p>
-                    <button class="buy-btn">הוסף לעגלה</button>
-                </div>
-            </div>
+// הגדרת Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
+    authDomain: "shop-75354.firebaseapp.com",
+    projectId: "shop-75354",
+    storageBucket: "shop-75354.firebasestorage.app",
+    messagingSenderId: "602207987151",
+    appId: "1:602207987151:web:839140b4a430e004cedeba",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// אלמנט המיכל להצגת המוצרים
+const productsContainer = document.getElementById('products-container');
+
+// פונקציה לטעינת מוצרים מתוך Firebase
+function loadProducts() {
+    const ordersRef = collection(db, 'orders'); // חיבור לקולקציה 'orders'
+    onSnapshot(ordersRef, (snapshot) => {
+        productsContainer.innerHTML = ''; // נקה את התצוגה הקיימת
+
+        snapshot.forEach(doc => {
+            const order = doc.data();
+
+            // נניח שלכל הזמנה יש שדה 'items' שמכיל את המוצרים
+            order.items?.forEach(item => {
+                const optionsHTML = item.options?.length > 0
+                    ? `
+                        <div class="product-options">
+                            <label for="options-${item.id}">בחר אופציה:</label>
+                            <select id="options-${item.id}">
+                                ${item.options.map(option => `
+                                    <option value="${option.name}">${option.name} (${option.values.join(', ')})</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                    `
+                    : '';
+
+                const productDiv = `
+                    <div class="product-item">
+                        <img src="${item.imageUrl || 'images/default.jpg'}" alt="${item.name}" width="200">
+                        <h3>${item.name}</h3>
+                        <p>${item.description || 'אין תיאור זמין'}</p>
+                        <p>מחיר: ₪${item.price}</p>
+                        ${optionsHTML}
+                        <button class="buy-btn">הוסף לעגלה</button>
+                    </div>
+                `;
+                productsContainer.innerHTML += productDiv;
+            });
+        });
+    });
+}
+
+// אתחול טעינת המוצרים
+loadProducts();
         </section>
         <section id="cart-section">
             <h2>סל קניות</h2>
