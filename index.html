@@ -525,7 +525,7 @@ footer {
         });
     }
 
-    function updateCartDisplay() {
+function updateCartDisplay() {
         cartItemsContainer.innerHTML = '';
         let total = 0;
         let itemCount = 0;
@@ -566,6 +566,12 @@ footer {
             const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
             paypalButtonContainer.innerHTML = '';
             paypal.Buttons({
+                client: {
+                    sandbox:    'AZGFbYTdHsMPlQoJYVYjCjUUKeB83lfi1k5AuDZD_70sr7yHE8Ac247Cv3efDssNxt9g-qNY_uWe54ea' // מזהה הלקוח שלך לסביבת בדיקה
+                    // production: 'your_production_client_id' // מזהה הלקוח שלך לסביבת ייצור
+                },
+                currency: 'ILS',
+                locale: 'he_IL',
                 createOrder: function(data, actions) {
                     const purchaseUnitsItems = Object.keys(cart).map(cartKey => {
                         const item = cart[cartKey];
@@ -575,7 +581,7 @@ footer {
                             quantity: item.quantity,
                             unit_amount: {
                                 value: item.price.toFixed(2),
-                                currency_code: 'ILS' // או מטבע אחר לפי הצורך
+                                currency_code: 'ILS'
                             }
                         };
                     });
@@ -584,11 +590,11 @@ footer {
                         purchase_units: [{
                             amount: {
                                 value: total.toFixed(2),
-                                currency_code: 'ILS', // או מטבע אחר לפי הצורך
+                                currency_code: 'ILS',
                                 breakdown: {
                                     item_total: {
                                         value: total.toFixed(2),
-                                        currency_code: 'ILS' // או מטבע אחר לפי הצורך
+                                        currency_code: 'ILS'
                                     },
                                     items: purchaseUnitsItems
                                 }
@@ -614,6 +620,14 @@ footer {
                     } else {
                         alert('אנא מלא את כל פרטי המשלוח לפני התשלום.');
                     }
+                },
+                onCancel: function(data, actions) {
+                    console.log('התשלום בוטל');
+                    alert('התשלום בוטל על ידי המשתמש.');
+                },
+                onError: function(err) {
+                    console.error('שגיאה בתשלום:', err);
+                    alert('אירעה שגיאה בעיבוד התשלום.');
                 }
             }).render('#paypal-button-container-cart');
         }
