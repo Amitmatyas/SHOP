@@ -473,180 +473,202 @@ footer {
             }
         }
 
-        // סל קניות
-        const cartSection = document.getElementById('cart-section');
-        const viewCartBtn = document.getElementById('view-cart-btn');
-        const cartItemsContainer = document.getElementById('cart-items');
-        const cartTotalElement = document.getElementById('cart-total');
-        const cartItemCountElement = document.getElementById('cart-item-count');
-        let cart = JSON.parse(localStorage.getItem('cart')) || {};
+// סל קניות
+    const cartSection = document.getElementById('cart-section');
+    const viewCartBtn = document.getElementById('view-cart-btn');
+    const cartItemsContainer = document.getElementById('cart-items');
+    const cartTotalElement = document.getElementById('cart-total');
+    const cartItemCountElement = document.getElementById('cart-item-count');
+    let cart = JSON.parse(localStorage.getItem('cart')) || {};
 
-        viewCartBtn?.addEventListener('click', () => {
-            cartSection.style.display = cartSection.style.display === 'none' ? 'block' : 'none';
+    // שדות קלט עבור פרטי משלוח (ודא שהם קיימים ב-HTML עם ה-IDs האלה)
+    const fullNameInput = document.getElementById('full-name');
+    const emailAddressInput = document.getElementById('email-address');
+    const phoneNumberInput = document.getElementById('phone-number');
+    const fullAddressInput = document.getElementById('full-address');
+    const postalCodeInput = document.getElementById('postal-code');
+
+    viewCartBtn?.addEventListener('click', () => {
+        cartSection.style.display = cartSection.style.display === 'none' ? 'block' : 'none';
+    });
+
+    function attachBuyButtonListeners() {
+        const buyButtons = document.querySelectorAll('.buy-btn');
+        buyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                const productName = this.dataset.productName;
+                const productPrice = parseFloat(this.dataset.productPrice);
+                const productItem = this.closest('.product-item');
+                const optionSelects = productItem.querySelectorAll('select');
+                let selectedOptions = {};
+                optionSelects.forEach(select => {
+                    selectedOptions[select.name] = select.value;
+                });
+
+                const cartKey = `${productId}-${JSON.stringify(selectedOptions)}`;
+
+                if (cart[cartKey]) {
+                    cart[cartKey].quantity++;
+                } else {
+                    cart[cartKey] = {
+                        productId: productId,
+                        name: productName,
+                        price: productPrice,
+                        quantity: 1,
+                        selectedOptions: selectedOptions
+                    };
+                }
+                updateCartDisplay();
+                cartSection.style.display = 'block';
+            });
         });
+    }
 
-        function attachBuyButtonListeners() {
-            const buyButtons = document.querySelectorAll('.buy-btn');
-            buyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.dataset.productId;
-                    const productName = this.dataset.productName;
-                    const productPrice = parseFloat(this.dataset.productPrice);
-                    const productItem = this.closest('.product-item');
-                    const optionSelects = productItem.querySelectorAll('select');
-                    let selectedOptions = {};
-                    optionSelects.forEach(select => {
-                        selectedOptions[select.name] = select.value;
+    function updateCartDisplay() {
+        cartItemsContainer.innerHTML = '';
+        let total = 0;
+        let itemCount = 0;
+        if (Object.keys(cart).length === 0) {
+            cartItemsContainer.innerHTML = '<p class="empty-cart-message">סל הקניות ריק.</p>';
+            const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
+            if (paypalButtonContainer) {
+                paypalButtonContainer.innerHTML = '';
+            }
+        } else {
+            for (const cartKey in cart) {
+                if (cart.hasOwnProperty(cartKey)) {
+                    const item = cart[cartKey];
+                    const cartItemDiv = document.createElement('div');
+                    cartItemDiv.classList.add('cart-item');
+                    let optionsText = '';
+                    if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
+                        const optionsArray = [];
+                        for (const key in item.selectedOptions) {
+                            optionsArray.push(`${key}: ${item.selectedOptions[key]}`);
+                        }
+                        optionsText = ` (${optionsArray.join(', ')})`;
+                    }
+                    cartItemDiv.innerHTML = `
+                        <span>${item.name}${optionsText} x ${item.quantity}</span>
+                        <span>₪${(item.price * item.quantity).toFixed(2)}</span>
+                        <button class="remove-from-cart" data-cart-key="${cartKey}">הסר</button>
+                    `;
+                    cartItemsContainer.appendChild(cartItemDiv);
+                    total += item.price * item.quantity;
+                    itemCount += item.quantity;
+                }
+            }
+            cartTotalElement.textContent = total.toFixed(2);
+            cartItemCountElement.textContent = itemCount;
+            localStorage.setItem('cart', JSON.stringify(cart));
+
+            const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
+            paypalButtonContainer.innerHTML = '';
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    const purchaseUnitsItems = Object.keys(cart).map(cartKey => {
+                        const item = cart[cartKey];
+                        const itemNameWithOptions = item.name + (item.selectedOptions && Object.keys(item.selectedOptions).length > 0 ? ` - ${Object.values(item.selectedOptions).join(', ')}` : '');
+                        return {
+                            name: itemNameWithOptions,
+                            quantity: item.quantity,
+                            unit_amount: {
+                                value: item.price.toFixed(2),
+                                currency_code: 'ILS' // או מטבע אחר לפי הצורך
+                            }
+                        };
                     });
 
-                    const cartKey = `${productId}-${JSON.stringify(selectedOptions)}`;
-
-                    if (cart[cartKey]) {
-                        cart[cartKey].quantity++;
-                    } else {
-                        cart[cartKey] = {
-                            productId: productId,
-                            name: productName,
-                            price: productPrice,
-                            quantity: 1,
-                            selectedOptions: selectedOptions
-                        };
-                    }
-                    updateCartDisplay();
-                    cartSection.style.display = 'block';
-                });
-            });
-        }
-
-const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
-    paypalButtonContainer.innerHTML = '';
-    paypal.Buttons({
-        createOrder: function(data, actions) {
-            const purchaseUnitsItems = Object.keys(cart).map(cartKey => {
-                const item = cart[cartKey];
-                const itemNameWithOptions = item.name + (item.selectedOptions && Object.keys(item.selectedOptions).length > 0 ? ` - ${Object.values(item.selectedOptions).join(', ')}` : '');
-                return {
-                    name: itemNameWithOptions,
-                    quantity: item.quantity,
-                    unit_amount: {
-                        value: item.price.toFixed(2),
-                        currency_code: 'ILS' // או מטבע אחר לפי הצורך
-                    }
-                };
-            });
-
-            return actions.order.create({
-                purchase_units: [{
-                    amount: {
-                        value: total.toFixed(2),
-                        currency_code: 'ILS', // או מטבע אחר לפי הצורך
-                        breakdown: {
-                            item_total: {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
                                 value: total.toFixed(2),
-                                currency_code: 'ILS' // או מטבע אחר לפי הצורך
+                                currency_code: 'ILS', // או מטבע אחר לפי הצורך
+                                breakdown: {
+                                    item_total: {
+                                        value: total.toFixed(2),
+                                        currency_code: 'ILS' // או מטבע אחר לפי הצורך
+                                    },
+                                    items: purchaseUnitsItems
+                                }
                             },
                             items: purchaseUnitsItems
-                        }
-                    },
-                    items: purchaseUnitsItems
-                }]
-            });
-        },
-        onApprove: async function(data, actions) {
-            const details = await actions.order.capture();
-            const fullName = fullNameInput.value;
-            const emailAddress = emailAddressInput.value;
-            const phoneNumber = phoneNumberInput.value;
-            const fullAddress = fullAddressInput.value;
-            const postalCode = postalCodeInput.value;
+                        }]
+                    });
+                },
+                onApprove: async function(data, actions) {
+                    const details = await actions.order.capture();
+                    const fullName = fullNameInput.value;
+                    const emailAddress = emailAddressInput.value;
+                    const phoneNumber = phoneNumberInput.value;
+                    const fullAddress = fullAddressInput.value;
+                    const postalCode = postalCodeInput.value;
 
-            if (fullName && emailAddress && phoneNumber && fullAddress && postalCode) {
-                await saveOrderToFirebase(details, cart, total, fullName, emailAddress, phoneNumber, fullAddress, postalCode);
-                alert('ההזמנה שלך נקלטה בהצלחה! מספר ההזמנה ישלח אליך במייל.');
-                cart = {};
-                localStorage.removeItem('cart');
-                updateCartDisplay();
-            } else {
-                alert('אנא מלא את כל פרטי המשלוח לפני התשלום.');
-            }
-        }
-    }).render('#paypal-button-container-cart');
-
-                            actions.order.create ({
-                            purchase_units: [{
-                                amount: {
-                                    value: total.toFixed(2),
-                                    currency_code: 'ILS', // או מטבע אחר לפי הצורך
-                                    breakdown: {
-                                        item_total: {
-                                            value: total.toFixed(2),
-                                            currency_code: 'ILS' // או מטבע אחר לפי הצורך
-                                        },
-                                        items: purchaseUnitsItems
-                                    }
-                                },
-                                items: purchaseUnitsItems // הוספת פרטי הפריטים ברמה העליונה (ייתכן שנדרש בהתאם לגרסת ה-SDK)
-                            }]
-                        });
-                    },
-                    onApprove: function(data, actions) {
-                        return actions.order.capture().then(function(details) {
-                            alert('התשלום בוצע בהצלחה על ידי ' + details.payer.name.given_name);
-                            saveOrderToFirebase(details, cart, total);
-                            cart = {};
-                            localStorage.removeItem('cart');
-                            updateCartDisplay();
-                        });
+                    if (fullName && emailAddress && phoneNumber && fullAddress && postalCode) {
+                        await saveOrderToFirebase(details, cart, total, fullName, emailAddress, phoneNumber, fullAddress, postalCode);
+                        alert('ההזמנה שלך נקלטה בהצלחה! מספר ההזמנה ישלח אליך במייל.');
+                        cart = {};
+                        localStorage.removeItem('cart');
+                        updateCartDisplay();
+                    } else {
+                        alert('אנא מלא את כל פרטי המשלוח לפני התשלום.');
                     }
-                }).render('#paypal-button-container-cart');
-            }
+                }
+            }).render('#paypal-button-container-cart');
         }
-
-        cartItemsContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-from-cart')) {
-                const cartKeyToRemove = event.target.dataset.cartKey;
-                delete cart[cartKeyToRemove];
-                updateCartDisplay();
-            }
-        });
-async function saveOrderToFirebase(paymentDetails, cartItems, totalAmount, fullName, emailAddress, phoneNumber, fullAddress, postalCode) {
-    // יצירת מספר סידורי ייחודי להזמנה
-    const orderSerialNumber = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
-
-    const orderData = {
-        orderId: orderSerialNumber,
-        paymentId: paymentDetails.id,
-        payerId: paymentDetails.payer.payer_id,
-        customerName: fullName,
-        customerEmail: emailAddress,
-        customerPhone: phoneNumber,
-        shippingAddress: fullAddress,
-        postalCode: postalCode,
-        paymentStatus: paymentDetails.status,
-        totalAmount: totalAmount,
-        items: Object.keys(cartItems).map(cartKey => {
-            const item = cartItems[cartKey];
-            return {
-                productId: item.productId,
-                productName: item.name,
-                quantity: item.quantity,
-                price: item.price,
-                selectedOptions: item.selectedOptions
-            };
-        }),
-        timestamp: new Date()
-    };
-
-    try {
-        // שימוש ב-setDoc כדי להגדיר את ה-ID של המסמך
-        await setDoc(doc(db, 'orders', orderSerialNumber), orderData);
-        console.log("הזמנה נשמרה עם מספר סידורי: ", orderSerialNumber);
-        // כאן אתה יכול להוסיף לוגיקה לשליחת מייל אישור ללקוח
-    } catch (error) {
-        console.error("שגיאה בשמירת ההזמנה: ", error);
-        alert('אירעה שגיאה בשמירת ההזמנה.');
     }
-}
+
+    cartItemsContainer.addEventListener('click', function(event) {
+        if (event.target.classList.contains('remove-from-cart')) {
+            const cartKeyToRemove = event.target.dataset.cartKey;
+            delete cart[cartKeyToRemove];
+            updateCartDisplay();
+        }
+    });
+
+    async function saveOrderToFirebase(paymentDetails, cartItems, totalAmount, fullName, emailAddress, phoneNumber, fullAddress, postalCode) {
+        // יצירת מספר סידורי ייחודי להזמנה
+        const orderSerialNumber = Date.now().toString(36) + Math.random().toString(36).substring(2, 7);
+
+        const orderData = {
+            orderId: orderSerialNumber,
+            paymentId: paymentDetails.id,
+            payerId: paymentDetails.payer.payer_id,
+            customerName: fullName,
+            customerEmail: emailAddress,
+            customerPhone: phoneNumber,
+            shippingAddress: fullAddress,
+            postalCode: postalCode,
+            paymentStatus: paymentDetails.status,
+            totalAmount: totalAmount,
+            items: Object.keys(cartItems).map(cartKey => {
+                const item = cartItems[cartKey];
+                return {
+                    productId: item.productId,
+                    productName: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    selectedOptions: item.selectedOptions
+                };
+            }),
+            timestamp: new Date()
+        };
+
+        try {
+            // שימוש ב-setDoc כדי להגדיר את ה-ID של המסמך
+            await setDoc(doc(db, 'orders', orderSerialNumber), orderData);
+            console.log("הזמנה נשמרה עם מספר סידורי: ", orderSerialNumber);
+            alert('ההזמנה שלך נקלטה בהצלחה! מספר ההזמנה ישלח אליך במייל.');
+            // כאן אתה יכול להוסיף לוגיקה לשליחת מייל אישור ללקוח
+        } catch (error) {
+            console.error("שגיאה בשמירת ההזמנה: ", error);
+            alert('אירעה שגיאה בשמירת ההזמנה.');
+        }
+    }
+
+    updateCartDisplay(); // טעינת סל קיים מה-localStorage בעת טעינת הדף
+    loadProducts(); // טעינת המוצרים מפיירבייס בעת טעינת הדף
 
             try {
                 const docRef = await addDoc(collection(db, 'orders'), orderData);
