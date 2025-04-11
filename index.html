@@ -668,21 +668,6 @@ function updateCartDisplay() {
             }),
             timestamp: new Date()
         };
-
-        try {
-            // שימוש ב-setDoc כדי להגדיר את ה-ID של המסמך
-            await setDoc(doc(db, 'orders', orderSerialNumber), orderData);
-            console.log("הזמנה נשמרה עם מספר סידורי: ", orderSerialNumber);
-            alert('ההזמנה שלך נקלטה בהצלחה! מספר ההזמנה ישלח אליך במייל.');
-            // כאן אתה יכול להוסיף לוגיקה לשליחת מייל אישור ללקוח
-        } catch (error) {
-            console.error("שגיאה בשמירת ההזמנה: ", error);
-            alert('אירעה שגיאה בשמירת ההזמנה.');
-        }
-    }
-
-    updateCartDisplay(); // טעינת סל קיים מה-localStorage בעת טעינת הדף
-    loadProducts(); // טעינת המוצרים מפיירבייס בעת טעינת הדף
     </script>
 </body>
 </html>
