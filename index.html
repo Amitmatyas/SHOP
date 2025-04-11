@@ -316,6 +316,7 @@ footer {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// קונפיגורציית Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBEJgBRrpw6b1VsSqKl81q1z8m2RiixEmM",
     authDomain: "shop-75354.firebaseapp.com",
@@ -325,6 +326,7 @@ const firebaseConfig = {
     appId: "1:602207987151:web:839140b4a430e004cedeba",
 };
 
+// אתחול Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -334,34 +336,34 @@ const productsContainer = document.getElementById('products-container');
 // פונקציה לטעינת מוצרים מתוך Firebase
 function loadProducts() {
     const productsRef = collection(db, 'products'); // חיבור לקולקציה 'products'
+
     onSnapshot(productsRef, (snapshot) => {
         productsContainer.innerHTML = ''; // נקה את התצוגה הקיימת
 
         snapshot.forEach(doc => {
             const product = doc.data();
 
-            // אופציות המוצר אם קיימות
-            const optionsHTML = product.options?.length > 0
-                ? `
-                    <div class="product-options">
-                        <label for="options-${doc.id}">בחר אופציה:</label>
-                        <select id="options-${doc.id}">
-                            ${product.options.map(option => `
-                                <option value="${option.name}">${option.name} (${option.values.join(', ')})</option>
-                            `).join('')}
-                        </select>
-                    </div>
-                `
-                : '';
-
-            // יצירת בלוק המוצר
+            // יצירת בלוק HTML לכל מוצר
             const productDiv = `
                 <div class="product-item">
-                    <img src="${product.imageUrl || 'images/default.jpg'}" alt="${product.name}" width="200">
-                    <h3>${product.name}</h3>
-                    <p>${product.description || 'אין תיאור זמין'}</p>
-                    <p>מחיר: ₪${product.price}</p>
-                    ${optionsHTML}
+                    <img src="${product.imageUrl || 'images/default.jpg'}" alt="${product.name || 'מוצר ללא שם'}" width="200">
+                    <h3>${product.name || 'מוצר ללא שם'}</h3>
+                    <p>${product.description || 'אין תיאור למוצר זה.'}</p>
+                    <p>מחיר: ₪${product.price || 'לא זמין'}</p>
+                    ${
+                        product.options?.length > 0
+                        ? `
+                            <div class="product-options">
+                                <label for="options-${doc.id}">בחר אופציה:</label>
+                                <select id="options-${doc.id}">
+                                    ${product.options.map(option => `
+                                        <option value="${option}">${option}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                        `
+                        : ''
+                    }
                     <button class="buy-btn">הוסף לעגלה</button>
                 </div>
             `;
