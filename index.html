@@ -341,7 +341,6 @@ footer {
         <p>&copy; 2025 החנות שלי. כל הזכויות שמורות.</p>
     </footer>
     <script type="module">
-        // **חלק 2 (בערך 200 שורות)**
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -424,224 +423,6 @@ footer {
             e.preventDefault();
             try {
                 await signOut(auth);
-                console.log('התנתקות בוצעהבהצלחה.');
-                // onAuthStateChanged יטפל בעדכון התצוגה
-            } catch (error) {
-                console.error('שגיאה בהתנתקות:', error.message);
-            }
-        });
-
-        async function loadProducts() {
-            if (!productsContainer) return;
-            productsContainer.innerHTML = '<p>טוען מוצרים...</p>';
-            try {
-                const productsRef = collection(db, 'products');
-                onSnapshot(productsRef, (snapshot) => {
-                    productsContainer.innerHTML = '';
-                    if (!snapshot.empty) {
-                        snapshot.forEach(doc => {
-                            const product = doc.data();
-                            const productDiv = document.createElement('div');
-                            productDiv.classList.add('product-item');
-                            productDiv.innerHTML = `
-                                <img src="${product.imageUrl || 'images/placeholder.png'}" alt="${product.name}">
-                                <h3>${product.name}</h3>
-                                <p>מחיר: ${product.price} ₪</p>
-                                <p>${product.description || ''}</p>
-                                <div id="options-${doc.id}"></div>
-                                <button class="buy-btn" data-product-id="${doc.id}" data-product-name="${product.name}" data-product-price="${product.price}">הוסף לעגלה</button>
-                            `;
-                            productsContainer.appendChild(productDiv);
-                            // הצגת אופציות אם קיימות
-                            const optionsContainer = productDiv.querySelector(`#options-${doc.id}`);
-                            if (product.options && product.options.length > 0) {
-                                product.options.forEach(option => {
-                                    const select = document.createElement('select');
-                                    select.name = option.name;
-                                    const label = document.createElement('label');
-                                    label.textContent = `${option.name}: `;
-                                    label.htmlFor = select.name;
-                                    optionsContainer.appendChild(label);
-                                    option.values.forEach(value => {
-                                        const optionElement = document.createElement('option');
-                                        optionElement.value = value;
-                                        optionElement.textContent = value;
-                                        select.appendChild(optionElement);
-                                    });
-                                    optionsContainer.appendChild(select);
-                                });
-                            }
-                        });
-                        attachBuyButtonListeners();
-                    } else {
-                        productsContainer.innerHTML = '<p>אין מוצרים כרגע.</p>';
-                    }
-                }, (error) => {
-                    console.error("שגיאה בטעינת מוצרים:", error);
-                    productsContainer.innerHTML = '<p>אירעה שגיאה בטעינת המוצרים.</p>';
-                });
-            } catch (error) {
-                console.error("שגיאה כללית בטעינת מוצרים:", error);
-                productsContainer.innerHTML = '<p>אירעה שגיאה כללית.</p>';
-            }
-        }
-
-        // סל קניות
-        const cartSection = document.getElementById('cart-section');
-        const viewCartBtn = document.getElementById('view-cart-btn');
-        const cartItemsContainer = document.getElementById('cart-items');
-        const cartTotalElement = document.getElementById('cart-total');
-        const cartItemCountElement = document.getElementById('cart-item-count');
-        let cart = JSON.parse(localStorage.getItem('cart')) || {};
-
-        function updateCartDisplay() {
-            cartItemsContainer.innerHTML = '';
-            let total = 0;
-            let itemCount = 0;
-            if (Object.keys(cart).length === 0) {
-                cartItemsContainer.innerHTML = '<p class="empty-cart-message">סל הקניות ריק.</p>';
-            } else {
-                for (const productId in cart) {
-                    if (cart.hasOwnProperty(productId)) {
-                        const item = cart[productId];
-                        const cartItemDiv = document.createElement('div');
-                        cartItemDiv.classList.add('cart-item');
-                        let optionsText = '';
-                        if (item.selectedOptions && Object.keys(item.selectedOptions).length > 0) {
-                            const optionsArray = [];
-                            for (const key in item.selectedOptions) {
-                                optionsArray.push(`${key}: ${item.selectedOptions[key]}`);
-                            }
-                            optionsText = ` (${optionsArray.join(', ')})`;
-                        }
-                        cartItemDiv.innerHTML = `
-                            <span>${item.name}${optionsText} x ${item.quantity}</span>
-                            <span>₪${(item.price * item.quantity).toFixed(2)}</span>
-                            <button class="remove-from-cart" data-product-id="${productId}">הסר</button>
-                        `;
-                        cartItemsContainer.appendChild(cartItemDiv);
-                        total += item.price * item.quantity;
-                        itemCount += item.quantity;
-                    }
-                }
-            }
-            cartTotalElement.textContent = total.toFixed(2);
-            cartItemCountElement.textContent = itemCount;
-            localStorage.setItem('cart', JSON.stringify(cart));
-            // עדכון כפתור PayPal רק אם יש פריטים בעגלה
-            const paypalButtonContainer = document.getElementById('paypal-button-container-cart');
-            paypalButtonContainer.innerHTML = '';
-            if (Object.keys(cart).length > 0) {
-                paypal.Buttons({
-                    createOrder: function(data, actions) {
-                        return actions.order.create({
-                            purchase_units: [{
-                                amount: {
-                                    value: total.toFixed(2)
-                                }
-                            }]
-                        });
-                    },
-                    onApprove: function(data, actions) {
-                        return actions.order.capture().then(function(details) {
-                            alert('התשלום בוצע בהצלחה על ידי ' + details.payer.name.given_name);
-                            saveOrderToFirebase(details, cart, total);
-                            cart = {};
-                            localStorage.removeItem('cart');
-                            updateCartDisplay();
-                        });
-                    }
-                }).render('#paypal-button-container-cart');
-            }
-        }
-
-        function attachBuyButtonListeners() {
-            const buyButtons = document.querySelectorAll('.buy-btn');
-            buyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.dataset.productId;
-                    const productName = this.dataset.productName;
-                    const productPrice = parseFloat(this.dataset.productPrice);
-                    const productItem = this.closest('.product-item');
-                    const optionSelects = productItem.querySelectorAll('select');
-                    let selectedOptions = {};
-                    optionSelects.forEach(select => {
-                        selectedOptions[select.name] = select.value;
-                    });
-
-                    if (cart[productId]) {
-                        cart[productId].quantity++;
-                    } else {
-                        cart[productId] = {
-                            name: productName,
-                            price: productPrice,
-                            quantity: 1,
-                            selectedOptions: selectedOptions
-                        };
-                    }
-                    updateCartDisplay();
-                    cartSection.style.display = 'block';
-                });
-            });
-        }
-
-        cartItemsContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-from-cart')) {
-                const productIdToRemove = event.target.dataset.productId;
-                delete cart[productIdToRemove];
-                updateCartDisplay();
-            }
-        });
-
-        viewCartBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            cartSection.style.display = cartSection.style.display === 'none' ? 'block' : 'none';
-        });
-
-        async function saveOrderToFirebase(paymentDetails, cartItems, totalAmount) {
-            const orderData = {
-                paymentId: paymentDetails.id,
-                payerId: paymentDetails.payer.payer_id,
-                customerName: paymentDetails.payer.name.given_name + ' ' + paymentDetails.payer.name.surname,
-                customerEmail: paymentDetails.payer.email_address,
-                paymentStatus: paymentDetails.status,
-                totalAmount: totalAmount,
-                items: Object.keys(cartItems).map(productId => {
-                    const item = cartItems[productId];
-                    return {
-                        productId: productId,
-                        productName: item.name,
-                        quantity: item.quantity,
-                        price: item.price,
-                        selectedOptions: item.selectedOptions
-                    };
-                }),
-                timestamp: new Date()
-            };
-
-            try {
-                const docRef = await addDoc(collection(db, 'orders'), orderData);
-                console.log("הזמנה נשמרה עם ID: ", docRef.id);
-                alert('ההזמנה שלך נשמרה בהצלחה!');
-            } catch (error) {
-                console.error("שגיאה בשמירת ההזמנה: ", error);
-                alert('אירעה שגיאה בשמירת ההזמנה.');
-            }
-        }
-
-        updateCartDisplay(); // טעינת סל קיים מה-localStorage בעת טעינת הדף
-        loadProducts(); // טעינת המוצרים מפיירבייס בעת טעינת הדף
-    </script>
-</body>
-</html>
-alert('אירעה שגיאה בהתחברות עם גוגל.');
-            }
-        });
-
-        logoutLink?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await signOut(auth);
                 console.log('התנתקות בוצעה בהצלחה.');
                 // onAuthStateChanged יטפל בעדכון התצוגה
             } catch (error) {
@@ -661,34 +442,22 @@ alert('אירעה שגיאה בהתחברות עם גוגל.');
                             const product = doc.data();
                             const productDiv = document.createElement('div');
                             productDiv.classList.add('product-item');
+                            const optionsHtml = product.options && product.options.length > 0 ?
+                                product.options.map(option => `
+                                    <label for="${doc.id}-${option.name}">${option.name}:</label>
+                                    <select name="${option.name}" id="${doc.id}-${option.name}">
+                                        ${option.values.map(value => `<option value="${value}">${value}</option>`).join('')}
+                                    </select>
+                                `).join('') : '';
                             productDiv.innerHTML = `
                                 <img src="${product.imageUrl || 'images/placeholder.png'}" alt="${product.name}">
                                 <h3>${product.name}</h3>
                                 <p>מחיר: ${product.price} ₪</p>
                                 <p>${product.description || ''}</p>
-                                <div id="options-${doc.id}"></div>
+                                ${optionsHtml}
                                 <button class="buy-btn" data-product-id="${doc.id}" data-product-name="${product.name}" data-product-price="${product.price}">הוסף לעגלה</button>
                             `;
                             productsContainer.appendChild(productDiv);
-                            // הצגת אופציות אם קיימות
-                            const optionsContainer = productDiv.querySelector(`#options-${doc.id}`);
-                            if (product.options && product.options.length > 0) {
-                                product.options.forEach(option => {
-                                    const select = document.createElement('select');
-                                    select.name = option.name;
-                                    const label = document.createElement('label');
-                                    label.textContent = `${option.name}: `;
-                                    label.htmlFor = select.name;
-                                    optionsContainer.appendChild(label);
-                                    option.values.forEach(value => {
-                                        const optionElement = document.createElement('option');
-                                        optionElement.value = value;
-                                        optionElement.textContent = value;
-                                        select.appendChild(optionElement);
-                                    });
-                                    optionsContainer.appendChild(select);
-                                });
-                            }
                         });
                         attachBuyButtonListeners();
                     } else {
@@ -712,6 +481,43 @@ alert('אירעה שגיאה בהתחברות עם גוגל.');
         const cartItemCountElement = document.getElementById('cart-item-count');
         let cart = JSON.parse(localStorage.getItem('cart')) || {};
 
+        viewCartBtn?.addEventListener('click', () => {
+            cartSection.style.display = cartSection.style.display === 'none' ? 'block' : 'none';
+        });
+
+        function attachBuyButtonListeners() {
+            const buyButtons = document.querySelectorAll('.buy-btn');
+            buyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    const productName = this.dataset.productName;
+                    const productPrice = parseFloat(this.dataset.productPrice);
+                    const productItem = this.closest('.product-item');
+                    const optionSelects = productItem.querySelectorAll('select');
+                    let selectedOptions = {};
+                    optionSelects.forEach(select => {
+                        selectedOptions[select.name] = select.value;
+                    });
+
+                    const cartKey = `${productId}-${JSON.stringify(selectedOptions)}`;
+
+                    if (cart[cartKey]) {
+                        cart[cartKey].quantity++;
+                    } else {
+                        cart[cartKey] = {
+                            productId: productId,
+                            name: productName,
+                            price: productPrice,
+                            quantity: 1,
+                            selectedOptions: selectedOptions
+                        };
+                    }
+                    updateCartDisplay();
+                    cartSection.style.display = 'block';
+                });
+            });
+        }
+
         function updateCartDisplay() {
             cartItemsContainer.innerHTML = '';
             let total = 0;
@@ -719,9 +525,9 @@ alert('אירעה שגיאה בהתחברות עם גוגל.');
             if (Object.keys(cart).length === 0) {
                 cartItemsContainer.innerHTML = '<p class="empty-cart-message">סל הקניות ריק.</p>';
             } else {
-                for (const productId in cart) {
-                    if (cart.hasOwnProperty(productId)) {
-                        const item = cart[productId];
+                for (const cartKey in cart) {
+                    if (cart.hasOwnProperty(cartKey)) {
+                        const item = cart[cartKey];
                         const cartItemDiv = document.createElement('div');
                         cartItemDiv.classList.add('cart-item');
                         let optionsText = '';
@@ -735,7 +541,7 @@ alert('אירעה שגיאה בהתחברות עם גוגל.');
                         cartItemDiv.innerHTML = `
                             <span>${item.name}${optionsText} x ${item.quantity}</span>
                             <span>₪${(item.price * item.quantity).toFixed(2)}</span>
-                            <button class="remove-from-cart" data-product-id="${productId}">הסר</button>
+                            <button class="remove-from-cart" data-cart-key="${cartKey}">הסר</button>
                         `;
                         cartItemsContainer.appendChild(cartItemDiv);
                         total += item.price * item.quantity;
@@ -752,11 +558,32 @@ alert('אירעה שגיאה בהתחברות עם גוגל.');
             if (Object.keys(cart).length > 0) {
                 paypal.Buttons({
                     createOrder: function(data, actions) {
+                        const purchaseUnitsItems = Object.keys(cart).map(cartKey => {
+                            const item = cart[cartKey];
+                            return {
+                                name: item.name + (item.selectedOptions && Object.keys(item.selectedOptions).length > 0 ? ` (${Object.values(item.selectedOptions).join(', ')})` : ''),
+                                quantity: item.quantity,
+                                unit_amount: {
+                                    value: item.price.toFixed(2),
+                                    currency_code: 'ILS' // או מטבע אחר לפי הצורך
+                                }
+                            };
+                        });
+
                         return actions.order.create({
                             purchase_units: [{
                                 amount: {
-                                    value: total.toFixed(2)
-                                }
+                                    value: total.toFixed(2),
+                                    currency_code: 'ILS', // או מטבע אחר לפי הצורך
+                                    breakdown: {
+                                        item_total: {
+                                            value: total.toFixed(2),
+                                            currency_code: 'ILS' // או מטבע אחר לפי הצורך
+                                        },
+                                        items: purchaseUnitsItems
+                                    }
+                                },
+                                items: purchaseUnitsItems // הוספת פרטי הפריטים ברמה העליונה (ייתכן שנדרש בהתאם לגרסת ה-SDK)
                             }]
                         });
                     },
@@ -773,50 +600,14 @@ alert('אירעה שגיאה בהתחברות עם גוגל.');
             }
         }
 
-        function attachBuyButtonListeners() {
-            const buyButtons = document.querySelectorAll('.buy-btn');
-            buyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.dataset.productId;
-                    const productName = this.dataset.productName;
-                    const productPrice = parseFloat(this.dataset.productPrice);
-                    const productItem = this.closest('.product-item');
-                    const optionSelects = productItem.querySelectorAll('select');
-                    let selectedOptions = {};
-                    optionSelects.forEach(select => {
-                        selectedOptions[select.name] = select.value;
-                    });
-
-                    if (cart[productId]) {
-                        cart[productId].quantity++;
-                    } else {
-                        cart[productId] = {
-                            name: productName,
-                            price: productPrice,
-                            quantity: 1,
-                            selectedOptions: selectedOptions
-                        };
-                    }
-                    updateCartDisplay();
-                    cartSection.style.display = 'block';
-                });
-            });
-        }
-
         cartItemsContainer.addEventListener('click', function(event) {
             if (event.target.classList.contains('remove-from-cart')) {
-                const productIdToRemove = event.target.dataset.productId;
-                delete cart[productIdToRemove];
+                const cartKeyToRemove = event.target.dataset.cartKey;
+                delete cart[cartKeyToRemove];
                 updateCartDisplay();
             }
         });
-
-        viewCartBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            cartSection.style.display = cartSection.style.display === 'none' ? 'block' : 'none';
-        });
-
-        async function saveOrderToFirebase(paymentDetails, cartItems, totalAmount) {
+async function saveOrderToFirebase(paymentDetails, cartItems, totalAmount) {
             const orderData = {
                 paymentId: paymentDetails.id,
                 payerId: paymentDetails.payer.payer_id,
@@ -824,10 +615,10 @@ alert('אירעה שגיאה בהתחברות עם גוגל.');
                 customerEmail: paymentDetails.payer.email_address,
                 paymentStatus: paymentDetails.status,
                 totalAmount: totalAmount,
-                items: Object.keys(cartItems).map(productId => {
-                    const item = cartItems[productId];
+                items: Object.keys(cartItems).map(cartKey => {
+                    const item = cartItems[cartKey];
                     return {
-                        productId: productId,
+                        productId: item.productId,
                         productName: item.name,
                         quantity: item.quantity,
                         price: item.price,
