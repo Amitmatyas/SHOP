@@ -636,7 +636,7 @@ cartItemsContainer.addEventListener('click', function(event) {
     }
 });
 
-// עדכון תצוגת סל הקניות
+<script>
     function updateCartDisplay() {
         cartItemsContainer.innerHTML = '';
         let total = 0;
@@ -705,7 +705,7 @@ cartItemsContainer.addEventListener('click', function(event) {
             }).render('#paypal-button-container-cart');
         }
     }
-    
+
     // מאזין להקליק על כפתור ההסרה
     cartItemsContainer.addEventListener('click', function(event) {
         if (event.target.classList.contains('remove-from-cart')) {
@@ -752,5 +752,6 @@ cartItemsContainer.addEventListener('click', function(event) {
             alert('אירעה שגיאה בשמירת ההזמנה.');
         }
     }
+</script>
 </body>
 </html>
