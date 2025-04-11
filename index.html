@@ -572,7 +572,7 @@ const paypalButtonContainer = document.getElementById('paypal-button-container-c
         }
     }).render('#paypal-button-container-cart');
 
-                            return actions.order.create ({
+                            actions.order.create ({
                             purchase_units: [{
                                 amount: {
                                     value: total.toFixed(2),
