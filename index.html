@@ -590,14 +590,23 @@ function updateCartDisplay() {
                     }]
                 });
             },
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(details) {
-                    alert('התשלום בוצע בהצלחה על ידי ' + details.payer.name.given_name);
-                    saveOrderToFirebase(details, cart, total);
+            onApprove: async function(data, actions) {
+                const details = await actions.order.capture();
+                const fullName = fullNameInput.value;
+                const emailAddress = emailAddressInput.value;
+                const phoneNumber = phoneNumberInput.value;
+                const fullAddress = fullAddressInput.value;
+                const postalCode = postalCodeInput.value;
+
+                if (fullName && emailAddress && phoneNumber && fullAddress && postalCode) {
+                    await saveOrderToFirebase(details, cart, total, fullName, emailAddress, phoneNumber, fullAddress, postalCode);
+                    alert('ההזמנה שלך נקלטה בהצלחה! מספר ההזמנה ישלח אליך במייל.');
                     cart = {};
                     localStorage.removeItem('cart');
                     updateCartDisplay();
-                });
+                } else {
+                    alert('אנא מלא את כל פרטי המשלוח לפני התשלום.');
+                }
             }
         }).render('#paypal-button-container-cart');
     }
