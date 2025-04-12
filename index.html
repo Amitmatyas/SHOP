@@ -350,17 +350,25 @@
     <label for="phone-number">טלפון:</label>
     <input type="tel" id="phone-number">
   </div>
-  <!-- שדה כתובת מלאה כולל תיבת הצעות להשלמה אוטומטית -->
-  <div>
-    <label for="full-address">כתובת מלאה:</label>
-    <input type="text" id="full-address" placeholder="הזן כתובת מלאה">
-    <div id="address-suggestions" style="border: 1px solid #ddd; background: #fff; max-height: 150px; overflow-y: auto; display: none;"></div>
+<!-- שדה כתובת עם הצעות להשלמה אוטומטית (מוגבל לישראל) -->
+<div>
+  <label for="full-address">כתובת:</label>
+  <input type="text" id="full-address" placeholder="הזן כתובת">
+  <div id="address-suggestions" style="border: 1px solid #ddd; background: #fff; max-height: 150px; overflow-y: auto; display: none;"></div>
+</div>
+
+<!-- שורה המכילה 2 שדות: דירה ומספר בית -->
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <div style="flex: 1;">
+    <label for="apartment">דירה:</label>
+    <input type="text" id="apartment" placeholder="דירה">
   </div>
-  <div>
-    <label for="postal-code">מיקוד:</label>
-    <input type="text" id="postal-code">
+  <div style="flex: 1;">
+    <label for="house-number">מספר בית:</label>
+    <input type="text" id="house-number" placeholder="מספר בית">
   </div>
 </div>
+
 <script>
   const fullAddressInput = document.getElementById('full-address');
   const addressSuggestions = document.getElementById('address-suggestions');
@@ -373,11 +381,11 @@
       return;
     }
     
-    // שליחת בקשה ל-Nominatim, מוגבלת לכתובות בישראל (countrycodes=il)
+    // בקשה ל-Nominatim, מוגבלת לכתובות בישראל (countrycodes=il)
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=il&accept-language=he&limit=5&q=${encodeURIComponent(query)}`, {
       headers: {
-        // אין צורך במפתח API, רק הקפד לעדכן את ה-User-Agent עם פרטי הפרויקט שלך
-        'User-Agent': 'ShopDemo/1.0 (amit@myshop.com)'
+        // אין צורך במפתח API – עדכן את ה-User-Agent עם פרטי הפרויקט שלך
+        'User-Agent': 'ShopDemo/1.0 (amitmatyas@yahoo.com)'
       }
     })
     .then(response => response.json())
@@ -394,29 +402,21 @@
         suggestionItem.style.padding = '8px';
         suggestionItem.style.cursor = 'pointer';
         suggestionItem.style.borderBottom = '1px solid #eee';
-
+        
         suggestionItem.addEventListener('click', () => {
-          // לקבל את הכתובת המוחזרת
-          let selectedAddress = place.display_name;
-          // אם הכתובת המוחזרת לא כוללת מספר, נבדוק האם הקלט שלנו כלל מספר בית
-          if (!/\d/.test(selectedAddress)) {
-            const numberMatch = query.match(/\d+/);
-            if (numberMatch) {
-              selectedAddress += `, ${numberMatch[0]}`;
-            }
-          }
-          // עדכון שדה "כתובת מלאה" עם הערך הסופי
-          fullAddressInput.value = selectedAddress;
+          // עדכון שדה הכתובת עם הערך הנבחר
+          fullAddressInput.value = place.display_name;
           addressSuggestions.innerHTML = '';
           addressSuggestions.style.display = 'none';
-          console.log("כתובת נבחרה:", selectedAddress);
+          console.log("כתובת נבחרה:", place.display_name);
         });
-
+        
         addressSuggestions.appendChild(suggestionItem);
       });
     })
     .catch(error => {
       console.error("שגיאה בשליפת הצעות כתובת:", error);
+      addressSuggestions.style.display = 'none';
     });
   });
 </script>
