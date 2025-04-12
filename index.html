@@ -788,102 +788,93 @@
       }, 1000);
     }
     
-    // השלמה אוטומטית של כתובת המשלוח באמצעות Nominatim
-    fullAddressInput.addEventListener('input', () => {
-      const query = fullAddressInput.value.trim();
-      if (query.length < 3) {
-        addressSuggestions.style.display = 'none';
-        addressSuggestions.innerHTML = '';
-        return;
-      }
+    // בודקים שה-DOM נטען לפני חיבור מאזינים
+    document.addEventListener("DOMContentLoaded", () => {
+      // מגדירים את המשתנה addressSuggestions
+      const addressSuggestions = document.getElementById('address-suggestions');
       
-      // קריאה ל-Nominatim עם addressdetails=1, מוגבלת לישראל
-document.addEventListener("DOMContentLoaded", () => {
-  // מגדירים את כל המשתנים החיוניים לאחר טעינת הדף
-  const addressSuggestions = document.getElementById('address-suggestions');
-  
-  // שליפת כתובת – שכעת addressSuggestions מוגדר
-  fullAddressInput.addEventListener('input', () => {
-    const query = fullAddressInput.value.trim();
-    if (query.length < 3) {
-      addressSuggestions.style.display = 'none';
-      addressSuggestions.innerHTML = '';
-      return;
-    }
-    
-    // קריאה ל-Nominatim עם addressdetails=1 לקבלת פרטי כתובת
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=il&accept-language=he&limit=5&q=${encodeURIComponent(query)}`, {
-      headers: {
-        'User-Agent': 'ShopDemo/1.0 (amitmatyas@yahoo.com)'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      addressSuggestions.innerHTML = '';
-      if (data.length === 0) {
-        addressSuggestions.style.display = 'none';
-        return;
-      }
-      addressSuggestions.style.display = 'block';
-      data.forEach(place => {
-        const suggestionItem = document.createElement('div');
-        suggestionItem.textContent = place.display_name;
-        suggestionItem.style.padding = '8px';
-        suggestionItem.style.cursor = 'pointer';
-        suggestionItem.style.borderBottom = '1px solid #eee';
-        
-        suggestionItem.addEventListener('click', () => {
-          let street = "";
-          let houseNum = "";
-          if(place.address) {
-            street = place.address.road || place.display_name;
-            houseNum = place.address.house_number || "";
-            if(place.address.postcode) {
-              postalCodeInput.value = place.address.postcode;
-            }
-          } else {
-            street = place.display_name;
-          }
-          fullAddressInput.value = street;
-          houseNumberInput.value = houseNum;
-          addressSuggestions.innerHTML = '';
+      // השלמה אוטומטית של כתובת המשלוח באמצעות Nominatim
+      fullAddressInput.addEventListener('input', () => {
+        const query = fullAddressInput.value.trim();
+        if (query.length < 3) {
           addressSuggestions.style.display = 'none';
-          console.log("נבחרה כתובת:", street, " - מספר בית:", houseNum);
-        });
-        
-        addressSuggestions.appendChild(suggestionItem);
-      });
-    })
-    .catch(error => {
-      console.error("שגיאה בשליפת הצעות כתובת:", error);
-      addressSuggestions.style.display = 'none';
-    });
-  });
-  
-  // טיפול בבחיצות על לחצני שינוי כמות עם בדיקת קיום הפריט
-  document.querySelectorAll('.increase-qty').forEach(button => {
-    button.addEventListener('click', (e) => {
-      const key = e.target.dataset.cartKey;
-      if (cart[key] !== undefined) {
-        cart[key].quantity++;
-        updateCartDisplay();
-      }
-    });
-  });
-  
-  document.querySelectorAll('.decrease-qty').forEach(button => {
-    button.addEventListener('click', (e) => {
-      const key = e.target.dataset.cartKey;
-      if (cart[key] !== undefined) {
-        if (cart[key].quantity > 1) {
-          cart[key].quantity--;
-        } else {
-          delete cart[key];
+          addressSuggestions.innerHTML = '';
+          return;
         }
-        updateCartDisplay();
-      }
+        
+        // קריאה ל-Nominatim עם addressdetails=1, מוגבלת לישראל
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=il&accept-language=he&limit=5&q=${encodeURIComponent(query)}`, {
+          headers: {
+            'User-Agent': 'ShopDemo/1.0 (amitmatyas@yahoo.com)'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          addressSuggestions.innerHTML = '';
+          if (data.length === 0) {
+            addressSuggestions.style.display = 'none';
+            return;
+          }
+          addressSuggestions.style.display = 'block';
+          data.forEach(place => {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.textContent = place.display_name;
+            suggestionItem.style.padding = '8px';
+            suggestionItem.style.cursor = 'pointer';
+            suggestionItem.style.borderBottom = '1px solid #eee';
+            
+            suggestionItem.addEventListener('click', () => {
+              let street = "";
+              let houseNum = "";
+              if (place.address) {
+                street = place.address.road || place.display_name;
+                houseNum = place.address.house_number || "";
+                if (place.address.postcode) {
+                  postalCodeInput.value = place.address.postcode;
+                }
+              } else {
+                street = place.display_name;
+              }
+              fullAddressInput.value = street;
+              houseNumberInput.value = houseNum;
+              addressSuggestions.innerHTML = '';
+              addressSuggestions.style.display = 'none';
+              console.log("נבחרה כתובת:", street, " - מספר בית:", houseNum);
+            });
+            
+            addressSuggestions.appendChild(suggestionItem);
+          });
+        })
+        .catch(error => {
+          console.error("שגיאה בשליפת הצעות כתובת:", error);
+          addressSuggestions.style.display = 'none';
+        });
+      });
+      
+      // טיפול בבחיצות על לחצני שינוי כמות עם בדיקת קיום הפריט
+      document.querySelectorAll('.increase-qty').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const key = e.target.dataset.cartKey;
+          if (cart[key] !== undefined) {
+            cart[key].quantity++;
+            updateCartDisplay();
+          }
+        });
+      });
+      
+      document.querySelectorAll('.decrease-qty').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const key = e.target.dataset.cartKey;
+          if (cart[key] !== undefined) {
+            if (cart[key].quantity > 1) {
+              cart[key].quantity--;
+            } else {
+              delete cart[key];
+            }
+            updateCartDisplay();
+          }
+        });
+      });
     });
-  });
-});
 </body>
 </html>
