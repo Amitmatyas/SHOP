@@ -351,11 +351,6 @@
                     <input type="tel" id="phone-number">
                 </div>
                 <div>
-<label for="full-address">כתובת מלאה:</label>
-<input type="text" id="full-address" placeholder="הזן כתובת מלאה">
-<!-- תיבה להצגת ההצעות שמתקבלות מ-Nominatim -->
-<div id="address-suggestions" style="border: 1px solid #ddd; background: #fff; max-height: 150px; overflow-y: auto; display: none;"></div>
-
 <script>
   const fullAddressInput = document.getElementById('full-address');
   const addressSuggestions = document.getElementById('address-suggestions');
@@ -368,40 +363,51 @@
       return;
     }
     
-    // שליחת בקשה ל-Nominatim עם הגבלה לישראל (countrycodes=il)
+    // שליחת בקשה ל-Nominatim - מוגבל לישראל (countrycodes=il)
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=il&accept-language=he&limit=5&q=${encodeURIComponent(query)}`, {
       headers: {
-        // עדכן את ה-User-Agent עם פרטי הפרויקט שלך
-        'User-Agent': 'ShopDemo/1.0 (amitmatyas@yahoo.com)'
+        // עדכן את ה-User-Agent עם פרטי הפרויקט שלך, אין צורך בהרשמה נפרדת
+        'User-Agent': 'ShopDemo/1.0 (amit@myshop.com)'
       }
     })
-      .then(response => response.json())
-      .then(data => {
-        addressSuggestions.innerHTML = '';
-        if (data.length === 0) {
+    .then(response => response.json())
+    .then(data => {
+      addressSuggestions.innerHTML = '';
+      if (data.length === 0) {
+        addressSuggestions.style.display = 'none';
+        return;
+      }
+      addressSuggestions.style.display = 'block';
+      data.forEach(place => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.textContent = place.display_name;
+        suggestionItem.style.padding = '8px';
+        suggestionItem.style.cursor = 'pointer';
+        suggestionItem.style.borderBottom = '1px solid #eee';
+
+        suggestionItem.addEventListener('click', () => {
+          // לקחת את הכתובת המוחזרת
+          let selectedAddress = place.display_name;
+          // אם לא נמצא מספר בכתובת המוחזרת, נבדוק אם הקלט (query) כולל מספר בית
+          if (!/\d/.test(selectedAddress)) {
+            const numberMatch = query.match(/\d+/);
+            if (numberMatch) {
+              selectedAddress += `, ${numberMatch[0]}`;
+            }
+          }
+          // עדכון שדה הקלט עם הכתובת הנבחרת (כולל מספר בית אם נמצא)
+          fullAddressInput.value = selectedAddress;
+          addressSuggestions.innerHTML = '';
           addressSuggestions.style.display = 'none';
-          return;
-        }
-        addressSuggestions.style.display = 'block';
-        data.forEach(place => {
-          const suggestionItem = document.createElement('div');
-          suggestionItem.textContent = place.display_name;
-          suggestionItem.style.padding = '8px';
-          suggestionItem.style.cursor = 'pointer';
-          suggestionItem.style.borderBottom = '1px solid #eee';
-          suggestionItem.addEventListener('click', () => {
-            // כאשר לוחצים על הצעה, מעדכנים את השדה הקיים
-            fullAddressInput.value = place.display_name;
-            addressSuggestions.innerHTML = '';
-            addressSuggestions.style.display = 'none';
-            console.log("כתובת נבחרה:", place);
-          });
-          addressSuggestions.appendChild(suggestionItem);
+          console.log("כתובת נבחרה:", selectedAddress);
         });
-      })
-      .catch(error => {
-        console.error("שגיאה בשליפת הצעות כתובת:", error);
+
+        addressSuggestions.appendChild(suggestionItem);
       });
+    })
+    .catch(error => {
+      console.error("שגיאה בשליפת הצעות כתובת:", error);
+    });
   });
 </script>
 
