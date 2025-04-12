@@ -335,22 +335,32 @@
             <div id="cart-items">
                 <p class="empty-cart-message">סל הקניות ריק.</p>
             </div>
-            <p>סך הכל: <span id="cart-total">0.00</span> ₪</p>
-            <div id="shipping-details">
-                <h3>פרטי משלוח</h3>
-                <div>
-                    <label for="full-name">שם מלא:</label>
-                    <input type="text" id="full-name">
-                </div>
-                <div>
-                    <label for="email-address">אימייל:</label>
-                    <input type="email" id="email-address">
-                </div>
-                <div>
-                    <label for="phone-number">טלפון:</label>
-                    <input type="tel" id="phone-number">
-                </div>
-                <div>
+<p>סך הכל: <span id="cart-total">0.00</span> ₪</p>
+<div id="shipping-details">
+  <h3>פרטי משלוח</h3>
+  <div>
+    <label for="full-name">שם מלא:</label>
+    <input type="text" id="full-name">
+  </div>
+  <div>
+    <label for="email-address">אימייל:</label>
+    <input type="email" id="email-address">
+  </div>
+  <div>
+    <label for="phone-number">טלפון:</label>
+    <input type="tel" id="phone-number">
+  </div>
+  <!-- שדה כתובת מלאה כולל תיבת הצעות להשלמה אוטומטית -->
+  <div>
+    <label for="full-address">כתובת מלאה:</label>
+    <input type="text" id="full-address" placeholder="הזן כתובת מלאה">
+    <div id="address-suggestions" style="border: 1px solid #ddd; background: #fff; max-height: 150px; overflow-y: auto; display: none;"></div>
+  </div>
+  <div>
+    <label for="postal-code">מיקוד:</label>
+    <input type="text" id="postal-code">
+  </div>
+</div>
 <script>
   const fullAddressInput = document.getElementById('full-address');
   const addressSuggestions = document.getElementById('address-suggestions');
@@ -363,10 +373,10 @@
       return;
     }
     
-    // שליחת בקשה ל-Nominatim - מוגבל לישראל (countrycodes=il)
+    // שליחת בקשה ל-Nominatim, מוגבלת לכתובות בישראל (countrycodes=il)
     fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=il&accept-language=he&limit=5&q=${encodeURIComponent(query)}`, {
       headers: {
-        // עדכן את ה-User-Agent עם פרטי הפרויקט שלך, אין צורך בהרשמה נפרדת
+        // אין צורך במפתח API, רק הקפד לעדכן את ה-User-Agent עם פרטי הפרויקט שלך
         'User-Agent': 'ShopDemo/1.0 (amit@myshop.com)'
       }
     })
@@ -386,16 +396,16 @@
         suggestionItem.style.borderBottom = '1px solid #eee';
 
         suggestionItem.addEventListener('click', () => {
-          // לקחת את הכתובת המוחזרת
+          // לקבל את הכתובת המוחזרת
           let selectedAddress = place.display_name;
-          // אם לא נמצא מספר בכתובת המוחזרת, נבדוק אם הקלט (query) כולל מספר בית
+          // אם הכתובת המוחזרת לא כוללת מספר, נבדוק האם הקלט שלנו כלל מספר בית
           if (!/\d/.test(selectedAddress)) {
             const numberMatch = query.match(/\d+/);
             if (numberMatch) {
               selectedAddress += `, ${numberMatch[0]}`;
             }
           }
-          // עדכון שדה הקלט עם הכתובת הנבחרת (כולל מספר בית אם נמצא)
+          // עדכון שדה "כתובת מלאה" עם הערך הסופי
           fullAddressInput.value = selectedAddress;
           addressSuggestions.innerHTML = '';
           addressSuggestions.style.display = 'none';
@@ -411,12 +421,6 @@
   });
 </script>
 
-                </div>
-                <div>
-                    <label for="postal-code">מיקוד:</label>
-                    <input type="text" id="postal-code">
-                </div>
-            </div>
             <div id="paypal-button-container-cart"></div>
         </section>
         <section id="about" class="about-us" style="display: none;">
